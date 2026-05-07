@@ -196,8 +196,9 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg shadow-sm">
     <div class="container">
-      <a class="navbar-brand d-flex align-items-center" href="#">
-        <img src="esemilogo.png" alt="ESEMI Logo" class="navbar-logo" />
+      <a class="navbar-brand" href="Home.html">
+        <img src="assets/esemilogo.png" alt="ESEMI Logo" />
+        <span>ESEMI</span>
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
         <span class="navbar-toggler-icon"></span>
@@ -208,7 +209,7 @@
             <a class="nav-link" href="login.html">Student Login</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="Home.html">Home</a>
+            <a class="nav-link active-page" href="Home.html">Home</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="blog.html">Blog</a>
@@ -230,21 +231,21 @@
     <div class="carousel-inner" id="carouselInner">
       <!-- Default Slides (esemi1-5.jpg) -->
       <div class="carousel-item active" data-bs-interval="5000">
-        <img src="esemi1.jpg" class="d-block w-100" alt="ESEMI Campus">
+        <img src="assets/esemi1.jpg" class="d-block w-100" alt="ESEMI Campus">
         <div class="carousel-caption">
           <h3>Welcome to ESEMI</h3>
           <p>Nurturing the next generation of leaders in a fun and engaging environment.</p>
         </div>
       </div>
       <div class="carousel-item" data-bs-interval="5000">
-        <img src="esemi2.jpg" class="d-block w-100" alt="Students Learning">
+        <img src="assets/esemi2.jpg" class="d-block w-100" alt="Students Learning">
         <div class="carousel-caption">
           <h3>Excellence in Education</h3>
           <p>Providing high-quality academic programs in Science, Arts, and ICT.</p>
         </div>
       </div>
       <div class="carousel-item" data-bs-interval="5000">
-        <img src="esemi3.jpg" class="d-block w-100" alt="School Activities">
+        <img src="assets/esemi3.jpg" class="d-block w-100" alt="School Activities">
         <div class="carousel-caption">
           <h3>Practical Learning</h3>
           <p>Hands-on experiences that prepare students for real-world challenges.</p>
@@ -291,6 +292,15 @@
 
     const indicators = document.getElementById("carouselIndicators");
     const inner = document.getElementById("carouselInner");
+
+    // Default high-quality local fallbacks
+    const defaultImages = [
+      { PicURL: 'assets/esemi1.jpg', PicTitle: 'Welcome to ESEMI', PicDescription: 'Excellence in Education Since 2011' },
+      { PicURL: 'assets/esemi2.jpg', PicTitle: 'Our Science Lab', PicDescription: 'Hands-on Learning for Future Innovators' },
+      { PicURL: 'assets/esemi3.jpg', PicTitle: 'Creative Arts', PicDescription: 'Nurturing Talent and Expression' },
+      { PicURL: 'assets/esemi4.jpg', PicTitle: 'Modern ICT', PicDescription: 'Equipping Students with Digital Skills' },
+      { PicURL: 'assets/esemi5.jpg', PicTitle: 'Student Life', PicDescription: 'A Community of Leaders' }
+    ];
 
     db.collection("Carosel Images")
       .orderBy("PicOrder", "asc")
