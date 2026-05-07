@@ -215,64 +215,68 @@
       ]
     };
 
-    function loadPosts(kind) {
-      blogContainer.innerHTML = "<p class='text-center'>Loading posts...</p>";
-      console.log("Loading posts for kind:", kind);
+    async function loadPosts(kind) {
+      blogContainer.innerHTML = "<p class='text-center'>Syncing with ESEMI Database...</p>";
+      console.log("🔍 Syncing category:", kind);
 
-      db.collection("Blogs")
-        .orderBy("Date", "desc")
-        .get()
-        .then(snapshot => {
-          blogContainer.innerHTML = "";
-          let allPosts = [];
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            // Store the data and handle field name variations
-            allPosts.push({
-              title: data["Blog Title"] || data.Title || "Untitled",
-              content: data.Content || data.body || "",
-              kind: (data["Blog Kind"] || data.Kind || data.type || "").toLowerCase(),
-              date: data.Date
-            });
-          });
+      try {
+        // Try 'Blogs' first, then 'Blog' if empty
+        let snapshot = await db.collection("Blogs").orderBy("Date", "desc").get();
+        if (snapshot.empty) {
+          snapshot = await db.collection("Blog").orderBy("Date", "desc").get();
+        }
 
-          // Filter by kind (case-insensitive)
-          const filtered = allPosts.filter(p => p.kind.includes(kind.toLowerCase()));
-          
-          let displayPosts = filtered.length > 0 ? filtered : fallbackPosts[kind];
+        blogContainer.innerHTML = "";
+        let allPosts = [];
 
-          if (displayPosts.length === 0) {
-            blogContainer.innerHTML = "<p class='text-center'>No posts found for this category.</p>";
-            return;
-          }
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          console.log("📄 Raw Data Found:", data); // Debugging info in console
 
-          displayPosts.forEach((p, index) => {
-            const card = document.createElement("div");
-            card.className = "blog-card reveal";
-            card.style.transitionDelay = `${index * 0.1}s`;
-            
-            card.innerHTML = `
-              <h5 style="color: var(--brand-red); font-weight: 700;">${p.title || p["Blog Title"]}</h5>
-              <small class="text-muted d-block mb-2">${formatDate(p.date || p.Date)}</small>
-              <p>${p.content || p.Content}</p>
-            `;
-            blogContainer.appendChild(card);
-            
-            // Trigger reveal
-            setTimeout(() => card.classList.add('active'), 50);
-          });
-        })
-        .catch(error => {
-          console.error("Error loading blog posts:", error);
-          blogContainer.innerHTML = "<p class='text-center text-danger'>Unable to sync with database. Showing default tips.</p>";
-          const posts = fallbackPosts[kind] || [];
-          posts.forEach(p => {
-             const card = document.createElement("div");
-             card.className = "blog-card reveal active";
-             card.innerHTML = `<h5>${p["Blog Title"]}</h5><small>${formatDate(p.Date)}</small><p>${p.Content}</p>`;
-             blogContainer.appendChild(card);
-          });
+          // Smart-Detection for fields
+          const title = data["Blog Title"] || data.Title || data.title || data.Subject || "Untitled Post";
+          const content = data.Content || data.content || data.body || data.Body || "";
+          const type = (data["Blog Kind"] || data.Kind || data.kind || data.Type || data.type || "").toLowerCase();
+          const date = data.Date || data.timestamp || null;
+
+          allPosts.push({ title, content, kind: type, date });
         });
+
+        // Filter by kind (case-insensitive)
+        const filtered = allPosts.filter(p => p.kind.includes(kind.toLowerCase()));
+        
+        // Only use fallbacks if there is absolutely NO data in Firebase for this category
+        let displayPosts = filtered.length > 0 ? filtered : (allPosts.length === 0 ? fallbackPosts[kind] : []);
+
+        if (displayPosts.length === 0) {
+          blogContainer.innerHTML = `<p class='text-center'>No ${kind} tips found in your database yet.</p>`;
+          return;
+        }
+
+        displayPosts.forEach((p, index) => {
+          const card = document.createElement("div");
+          card.className = "blog-card reveal";
+          card.style.transitionDelay = `${index * 0.1}s`;
+          
+          card.innerHTML = `
+            <h5 style="color: var(--brand-red); font-weight: 700;">${p.title}</h5>
+            <small class="text-muted d-block mb-2">${formatDate(p.date)}</small>
+            <p>${p.content}</p>
+          `;
+          blogContainer.appendChild(card);
+          setTimeout(() => card.classList.add('active'), 50);
+        });
+
+      } catch (error) {
+        console.error("❌ Firebase Error:", error);
+        blogContainer.innerHTML = "<p class='text-center text-danger'>Connection issue. Showing default tips.</p>";
+        fallbackPosts[kind].forEach(p => {
+           const card = document.createElement("div");
+           card.className = "blog-card reveal active";
+           card.innerHTML = `<h5>${p["Blog Title"]}</h5><small>${formatDate(p.Date)}</small><p>${p.Content}</p>`;
+           blogContainer.appendChild(card);
+        });
+      }
     }
 
     function scrollToTop() {

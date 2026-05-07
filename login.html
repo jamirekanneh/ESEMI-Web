@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login | Elizabeth Sele Mulbah Institute</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
-  <!-- ✅ Firebase SDKs v8 (classic style) -->
+  <link rel="stylesheet" href="shared.css" />
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
@@ -20,8 +18,8 @@
     }
 
     body {
-      background: linear-gradient(to bottom right, #000000, #ff0000);
-      color: white;
+      background: radial-gradient(circle at top right, var(--brand-red-dark), var(--brand-bg));
+      color: var(--brand-text);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -29,22 +27,34 @@
       padding: 2rem;
     }
 
+    [data-theme="dark"] body {
+       background: radial-gradient(circle at top right, #3b0707, var(--brand-bg));
+    }
+
     .login-container {
-      background: #ffffff10;
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
+      background: var(--card-bg);
+      backdrop-filter: blur(15px);
+      border-radius: 24px;
       padding: 3rem 2rem;
-      max-width: 400px;
+      max-width: 420px;
       width: 100%;
-      box-shadow: 0 0 30px rgba(255, 0, 0, 0.4);
-      border: 1px solid #ffffff20;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .login-container h2 {
       text-align: center;
-      margin-bottom: 1.5rem;
-      font-size: 1.75rem;
-      color: #fff;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+      color: var(--brand-red);
+    }
+
+    .login-subtitle {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: var(--brand-text);
+      opacity: 0.7;
+      font-size: 0.9rem;
     }
 
     .input-group {
@@ -59,29 +69,39 @@
 
     .input-group input {
       width: 100%;
-      padding: 0.75rem;
-      border-radius: 8px;
-      border: none;
+      padding: 0.85rem;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.1);
       outline: none;
-      background: #ffffff20;
-      color: #fff;
+      background: rgba(0,0,0,0.02);
+      color: var(--brand-text);
+      transition: var(--transition-base);
+    }
+
+    .input-group input:focus {
+      border-color: var(--brand-red);
+      background: var(--card-bg);
+      box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
     }
 
     .login-btn {
       width: 100%;
-      padding: 0.75rem;
-      margin-top: 1rem;
-      background: #ff0000;
+      padding: 0.85rem;
+      margin-top: 1.5rem;
+      background: var(--brand-red);
       border: none;
-      border-radius: 8px;
-      font-weight: bold;
+      border-radius: 12px;
+      font-weight: 700;
       color: #fff;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: var(--transition-base);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
     }
 
     .login-btn:hover {
-      background: #cc0000;
+      background: var(--brand-red-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
     }
 
     .footer-text {
@@ -93,8 +113,9 @@
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <h2>Elizabeth Sele Mulbah Institute</h2>
+  <div class="login-container reveal">
+    <h2>ESEMI</h2>
+    <p class="login-subtitle">Student Portal Access</p>
     <form id="loginForm">
       <div class="input-group">
         <label for="studentId">Student ID (use your email)</label>
@@ -150,6 +171,6 @@
           loginBtn.disabled = false;
         });
     });
-  </script>
+  <script src="shared.js"></script>
 </body>
 </html>
