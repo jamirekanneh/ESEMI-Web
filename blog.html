@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Blog | ESEMI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared.css" />
+
+  
+  <style>
+    body {
+      padding-top: 100px; /* Standardized with home page */
+    }
+
+    .blog-header {
+      text-align: center;
+      color: #b30000;
+      margin-bottom: 10px;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+      gap: 30px;
+      border-bottom: 2px solid #ddd;
+    }
+
+    .tab {
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding-bottom: 10px;
+      position: relative;
+      color: #333;
+      transition: color 0.3s;
+    }
+
+    .tab:hover {
+      color: #b30000;
+    }
+
+    .tab.active {
+      color: #b30000;
+    }
+
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      width: 100%;
+      background-color: #b30000;
+    }
+
+    .blog-card {
+      border-left: 5px solid #b30000;
+      background-color: #ffffff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .blog-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .blog-card h5 {
+      color: #b30000;
+      font-weight: 600;
+    }
+
+    .blog-card small {
+      color: #666;
+    }
+
+    .blog-card p {
+      margin-top: 10px;
+      color: #333;
+    }
+
+    .badge-new {
+      background-color: #28a745;
+      color: white;
+      font-size: 0.7rem;
+      margin-left: 10px;
+      padding: 3px 6px;
+      border-radius: 5px;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9rem;
+      color: #999;
+      margin-top: 60px;
+    }
+
+    #backToTopBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #b30000;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 50%;
+      font-size: 16px;
+      display: none;
+      cursor: pointer;
+      z-index: 1000;
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+<body>
+    
+    <!-- ESEMI Navbar -->
+<nav class="navbar navbar-expand-lg shadow-sm">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="#">
+      <img src="esemilogo.png" alt="ESEMI Logo" class="navbar-logo" />
+      
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navMenu">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="login.html">Student Login</a>
+        </li>
+          <li class="nav-item">
+          <a class="nav-link" href="Home.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="blog.html">Blog</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="about.html">About</a>
+        </li>
+        <li class="nav-item">
+          <div class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">☀️</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+
+
+  <div class="container reveal">
+    <h1 class="blog-header">ESEMI Blog</h1>
+    <p class="text-center mb-5">Learn. Grow. Gist. Stay Healthy.</p>
+
+    <div class="tabs">
+      <div class="tab active" id="studyTab" onclick="switchTab('Study')">📚 Study Tips</div>
+      <div class="tab" id="healthTab" onclick="switchTab('Health')">🍎 Health Tips</div>
+    </div>
+
+    <div id="blogContainer">Loading posts...</div>
+  </div>
+
+  <button id="backToTopBtn" onclick="scrollToTop()">↑</button>
+
+  
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDzAJqBjlzIGU7_eU8xOZUSbV9GB6cyNYA",
+      authDomain: "esemi-loginsheet.firebaseapp.com",
+      projectId: "esemi-loginsheet",
+      storageBucket: "esemi-loginsheet.appspot.com",
+      messagingSenderId: "698345147857",
+      appId: "1:698345147857:web:35c8f24f29bf3a7599e4f0"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const blogContainer = document.getElementById("blogContainer");
+    const studyTab = document.getElementById("studyTab");
+    const healthTab = document.getElementById("healthTab");
+    const backToTopBtn = document.getElementById("backToTopBtn");
+
+    function switchTab(type) {
+      studyTab.classList.remove("active");
+      healthTab.classList.remove("active");
+      if (type === "Study") {
+        studyTab.classList.add("active");
+      } else {
+        healthTab.classList.add("active");
+      }
+      loadPosts(type);
+    }
+
+    function formatDate(dateObj) {
+      return new Date(dateObj.seconds * 1000).toLocaleDateString("en-US", {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+    }
+
+    function loadPosts(kind) {
+      blogContainer.innerHTML = "<p class='text-center'>Loading posts...</p>";
+
+      db.collection("Blogs")
+        .where("Blog Kind", "==", kind)
+        .orderBy("Date", "desc")
+        .get()
+        .then(snapshot => {
+          blogContainer.innerHTML = "";
+
+          if (snapshot.empty) {
+            blogContainer.innerHTML = "<p class='text-center'>No posts found.</p>";
+            return;
+          }
+
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const card = document.createElement("div");
+            card.classList.add("blog-card");
+
+            const blogDate = data.Date?.seconds ? formatDate(data.Date) : "";
+            const now = new Date();
+            const postDate = new Date(data.Date?.seconds * 1000);
+            const isNew = (now - postDate) < 1000 * 60 * 60 * 24 * 3; // Less than 3 days old
+
+            card.innerHTML = `
+              <h5>${data["Blog Title"] || "Untitled Post"}${isNew ? '<span class="badge-new">NEW</span>' : ''}</h5>
+              <small>${blogDate}</small>
+              <p>${data.Content || "No content available."}</p>
+            `;
+
+            blogContainer.appendChild(card);
+          });
+        })
+        .catch(error => {
+          console.error("Error loading blog posts:", error);
+          blogContainer.innerHTML = "<p class='text-center text-danger'>Error loading posts.</p>";
+        });
+    }
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    window.onscroll = function () {
+      if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+        backToTopBtn.style.display = "block";
+      } else {
+        backToTopBtn.style.display = "none";
+      }
+    };
+
+    window.onload = () => {
+      loadPosts("Study");
+    };
+  </script>
+  <!-- Footer -->
+  <footer class="mt-5 text-center text-white" style="background-color: #b30000;">
+    <div class="container py-4">
+      <p class="mb-2">&copy; 2025 Elizabeth Sele Mulbah Institute. All rights reserved.</p>
+      <div class="d-flex justify-content-center gap-4">
+        <a href="https://www.facebook.com/profile.php?id=100057339143146" target="_blank" class="text-white text-decoration-none">
+          <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" width="24" height="24" />
+          <span class="ms-2">Facebook</span>
+        </a>
+        <a href="https://wa.me/+231777034812" target="_blank" class="text-white text-decoration-none">
+          <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp" width="24" height="24" />
+          <span class="ms-2">WhatsApp</span>
+        </a>
+        <a href="mailto:esemi2011@gmail.com" class="text-white text-decoration-none">
+          <img src="https://cdn-icons-png.flaticon.com/512/732/732200.png" alt="Email" width="24" height="24" />
+          <span class="ms-2">Email Us</span>
+        </a>
+      </div>
+    </div>
+  </footer>
+  <script src="shared.js"></script>
+</body>
+</html>

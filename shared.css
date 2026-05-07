@@ -1,0 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+/* --- Brand Color Tokens --- */
+:root {
+  --brand-red:       #dc2626; /* Modern Crimson */
+  --brand-red-dark:  #991b1b;
+  --brand-blue:      #1e3a8a; /* Navy Blue Accent */
+  --brand-bg:        #ffffff;
+  --brand-text:      #0f172a;
+  --card-bg:         #ffffff;
+  --navbar-bg:       #ffffff;
+  --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Mode Tweaks for Blue/Red */
+[data-theme="dark"] {
+  --brand-bg:        #0f172a; /* Navy-tinted dark */
+  --brand-text:      #f8fafc;
+  --card-bg:         #1e293b;
+  --navbar-bg:       #0f172a;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--brand-bg);
+  color: var(--brand-text);
+  transition: var(--transition-base);
+}
+
+/* --- Navbar --- */
+.navbar {
+  background-color: var(--navbar-bg, #fff);
+  border-bottom: 2px solid var(--brand-red);
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  padding: 5px 0; /* More compact padding */
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+  transition: var(--transition-base);
+}
+
+.navbar-logo {
+  height: 80px; /* Reduced from 150px/110px */
+  transition: height 0.3s ease;
+}
+
+.navbar-brand span {
+  font-weight: bold;
+  font-size: 1.4rem;
+  color: var(--brand-red);
+}
+
+.navbar-nav .nav-link {
+  color: #000;
+  margin-left: 20px;
+  font-weight: 500;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link::after {
+  content: '';
+  display: block;
+  width: 0%;
+  height: 2px;
+  background: var(--brand-red);
+  transition: width 0.3s;
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active-page {
+  color: var(--brand-red);
+}
+
+.navbar-nav .nav-link:hover::after,
+.navbar-nav .nav-link.active-page::after {
+  width: 100%;
+  background: var(--brand-blue); /* Blue underline for active/hover */
+}
+
+/* --- Animation Utilities --- */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Shared Footer --- */
+.esemi-footer {
+  background-color: var(--brand-red);
+  color: #fff;
+  text-align: center;
+  padding: 40px 0;
+}
+
+/* --- Dark Mode Toggle UI --- */
+.theme-toggle {
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 15px;
+}
+
+.theme-toggle:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.esemi-footer a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.esemi-footer a:hover {
+  text-decoration: underline;
+}
+
+/* --- Shared Heading Color --- */
+h2.section-red {
+  color: var(--brand-red);
+}
