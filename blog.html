@@ -23,37 +23,30 @@
     .tabs {
       display: flex;
       justify-content: center;
-      margin-bottom: 30px;
-      gap: 30px;
-      border-bottom: 2px solid #ddd;
+      gap: 20px;
+      margin-bottom: 40px;
     }
 
     .tab {
-      font-size: 1.2rem;
-      font-weight: 600;
+      padding: 12px 25px;
+      border-radius: 50px;
+      background: var(--card-bg);
+      border: 2px solid rgba(0,0,0,0.05);
       cursor: pointer;
-      padding-bottom: 10px;
-      position: relative;
-      color: #333;
-      transition: color 0.3s;
+      font-weight: 600;
+      transition: var(--transition-base);
     }
 
     .tab:hover {
-      color: #b30000;
+      background: rgba(220, 38, 38, 0.05);
+      border-color: var(--brand-red);
     }
 
     .tab.active {
-      color: #b30000;
-    }
-
-    .tab.active::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 3px;
-      width: 100%;
-      background-color: #b30000;
+      background-color: var(--brand-red);
+      color: #fff;
+      border-color: var(--brand-red);
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
     }
 
     .blog-card {
@@ -224,50 +217,59 @@
 
     function loadPosts(kind) {
       blogContainer.innerHTML = "<p class='text-center'>Loading posts...</p>";
+      console.log("Loading posts for kind:", kind);
 
       db.collection("Blogs")
-        .where("Blog Kind", "==", kind)
         .orderBy("Date", "desc")
         .get()
         .then(snapshot => {
           blogContainer.innerHTML = "";
-          let posts = [];
+          let allPosts = [];
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            // Store the data and handle field name variations
+            allPosts.push({
+              title: data["Blog Title"] || data.Title || "Untitled",
+              content: data.Content || data.body || "",
+              kind: (data["Blog Kind"] || data.Kind || data.type || "").toLowerCase(),
+              date: data.Date
+            });
+          });
 
-          if (snapshot.empty) {
-            // Use Fallbacks if Firebase is empty
-            posts = fallbackPosts[kind] || [];
-          } else {
-            snapshot.forEach(doc => posts.push(doc.data()));
-          }
+          // Filter by kind (case-insensitive)
+          const filtered = allPosts.filter(p => p.kind.includes(kind.toLowerCase()));
+          
+          let displayPosts = filtered.length > 0 ? filtered : fallbackPosts[kind];
 
-          if (posts.length === 0) {
-            blogContainer.innerHTML = "<p class='text-center'>No posts found.</p>";
+          if (displayPosts.length === 0) {
+            blogContainer.innerHTML = "<p class='text-center'>No posts found for this category.</p>";
             return;
           }
 
-          posts.forEach(data => {
+          displayPosts.forEach((p, index) => {
             const card = document.createElement("div");
-            card.className = "blog-card reveal active"; // Active by default for fallback
-
-            const blogDate = formatDate(data.Date);
+            card.className = "blog-card reveal";
+            card.style.transitionDelay = `${index * 0.1}s`;
             
             card.innerHTML = `
-              <h5>${data["Blog Title"] || "Untitled Post"}</h5>
-              <small>${blogDate}</small>
-              <p>${data.Content || "No content available."}</p>
+              <h5 style="color: var(--brand-red); font-weight: 700;">${p.title || p["Blog Title"]}</h5>
+              <small class="text-muted d-block mb-2">${formatDate(p.date || p.Date)}</small>
+              <p>${p.content || p.Content}</p>
             `;
             blogContainer.appendChild(card);
+            
+            // Trigger reveal
+            setTimeout(() => card.classList.add('active'), 50);
           });
         })
         .catch(error => {
           console.error("Error loading blog posts:", error);
-          // Show fallbacks even on error so user sees content
-          blogContainer.innerHTML = "";
+          blogContainer.innerHTML = "<p class='text-center text-danger'>Unable to sync with database. Showing default tips.</p>";
           const posts = fallbackPosts[kind] || [];
-          posts.forEach(data => {
+          posts.forEach(p => {
              const card = document.createElement("div");
              card.className = "blog-card reveal active";
-             card.innerHTML = `<h5>${data["Blog Title"]}</h5><small>${formatDate(data.Date)}</small><p>${data.Content}</p>`;
+             card.innerHTML = `<h5>${p["Blog Title"]}</h5><small>${formatDate(p.Date)}</small><p>${p.Content}</p>`;
              blogContainer.appendChild(card);
           });
         });
