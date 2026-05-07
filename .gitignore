@@ -1,0 +1,10 @@
+# Firebase config (contains API keys)
+firebase-config.js
+
+# IDE folders
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
