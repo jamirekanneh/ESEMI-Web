@@ -205,10 +205,22 @@
     }
 
     function formatDate(dateObj) {
+      if (!dateObj || !dateObj.seconds) return new Date().toLocaleDateString();
       return new Date(dateObj.seconds * 1000).toLocaleDateString("en-US", {
         year: 'numeric', month: 'long', day: 'numeric'
       });
     }
+
+    const fallbackPosts = {
+      "Study": [
+        { "Blog Title": "Master the Pomodoro Technique", "Content": "Break your study sessions into 25-minute blocks followed by a 5-minute break. This keeps your brain fresh and focused!", "Date": { seconds: Date.now()/1000 } },
+        { "Blog Title": "The Power of Active Recall", "Content": "Instead of just reading your notes, try to explain the concept out loud as if you were teaching someone else. It's the best way to memorize!", "Date": { seconds: (Date.now()/1000) - 86400 } }
+      ],
+      "Health": [
+        { "Blog Title": "Hydration & Focus", "Content": "Did you know that even mild dehydration can lower your concentration? Keep a water bottle on your desk at all times.", "Date": { seconds: Date.now()/1000 } },
+        { "Blog Title": "The Importance of Sleep", "Content": "Aim for 7-9 hours of sleep. Your brain processes everything you learned during the day while you rest!", "Date": { seconds: (Date.now()/1000) - 86400 } }
+      ]
+    };
 
     function loadPosts(kind) {
       blogContainer.innerHTML = "<p class='text-center'>Loading posts...</p>";
@@ -219,34 +231,45 @@
         .get()
         .then(snapshot => {
           blogContainer.innerHTML = "";
+          let posts = [];
 
           if (snapshot.empty) {
+            // Use Fallbacks if Firebase is empty
+            posts = fallbackPosts[kind] || [];
+          } else {
+            snapshot.forEach(doc => posts.push(doc.data()));
+          }
+
+          if (posts.length === 0) {
             blogContainer.innerHTML = "<p class='text-center'>No posts found.</p>";
             return;
           }
 
-          snapshot.forEach(doc => {
-            const data = doc.data();
+          posts.forEach(data => {
             const card = document.createElement("div");
-            card.classList.add("blog-card");
+            card.className = "blog-card reveal active"; // Active by default for fallback
 
-            const blogDate = data.Date?.seconds ? formatDate(data.Date) : "";
-            const now = new Date();
-            const postDate = new Date(data.Date?.seconds * 1000);
-            const isNew = (now - postDate) < 1000 * 60 * 60 * 24 * 3; // Less than 3 days old
-
+            const blogDate = formatDate(data.Date);
+            
             card.innerHTML = `
-              <h5>${data["Blog Title"] || "Untitled Post"}${isNew ? '<span class="badge-new">NEW</span>' : ''}</h5>
+              <h5>${data["Blog Title"] || "Untitled Post"}</h5>
               <small>${blogDate}</small>
               <p>${data.Content || "No content available."}</p>
             `;
-
             blogContainer.appendChild(card);
           });
         })
         .catch(error => {
           console.error("Error loading blog posts:", error);
-          blogContainer.innerHTML = "<p class='text-center text-danger'>Error loading posts.</p>";
+          // Show fallbacks even on error so user sees content
+          blogContainer.innerHTML = "";
+          const posts = fallbackPosts[kind] || [];
+          posts.forEach(data => {
+             const card = document.createElement("div");
+             card.className = "blog-card reveal active";
+             card.innerHTML = `<h5>${data["Blog Title"]}</h5><small>${formatDate(data.Date)}</small><p>${data.Content}</p>`;
+             blogContainer.appendChild(card);
+          });
         });
     }
 
