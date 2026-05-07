@@ -339,32 +339,38 @@
         inner.innerHTML = "<p>Error loading carousel images.</p>";
       });
 
-    function loadAnnouncements() {
+    async function loadAnnouncements() {
       const announcementsList = document.getElementById("announcementsList");
+      announcementsList.innerHTML = "<p>Syncing announcements...</p>";
 
-      db.collection("Announcements")
-        .orderBy("Date", "asc")
-        .get()
-        .then(snapshot => {
-          announcementsList.innerHTML = "";
+      try {
+        let snapshot = await db.collection("Announcements").orderBy("Date", "desc").get();
+        if (snapshot.empty) {
+          snapshot = await db.collection("Announcement").orderBy("Date", "desc").get();
+        }
 
-          if (snapshot.empty) {
-            announcementsList.innerHTML = "<p>No announcements at this time.</p>";
-            return;
-          }
+        announcementsList.innerHTML = "";
 
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const annDiv = document.createElement("div");
-            annDiv.classList.add("announcement-item");
-            annDiv.innerHTML = `<strong>${data.Title || "(No title)"}</strong><br>${data.Content || "(No content)"}`;
-            announcementsList.appendChild(annDiv);
-          });
-        })
-        .catch(error => {
-          console.error("Error loading announcements:", error);
-          announcementsList.innerHTML = "<p>Error loading announcements.</p>";
+        if (snapshot.empty) {
+          announcementsList.innerHTML = "<p>No announcements posted yet.</p>";
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          // Smart-detect fields
+          const title = data.Title || data.title || data.subject || data.Header || "Announcement";
+          const content = data.Content || data.content || data.body || data.text || "";
+          
+          const annDiv = document.createElement("div");
+          annDiv.classList.add("announcement-item");
+          annDiv.innerHTML = `<strong style="color: var(--brand-red);">${title}</strong><br><span style="font-size: 0.9rem; opacity: 0.8;">${content}</span>`;
+          announcementsList.appendChild(annDiv);
         });
+      } catch (error) {
+        console.error("Error loading announcements:", error);
+        announcementsList.innerHTML = "<p class='text-muted'>Unable to load announcements at this time.</p>";
+      }
     }
 
     loadAnnouncements();
