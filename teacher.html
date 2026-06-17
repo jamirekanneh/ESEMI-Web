@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Teacher Portal | ESEMI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="portal-ui.css" />
+  <script src="portal-ui.js"></script>
+</head>
+<body class="p-portal p-animate-in">
+  <div class="p-modal" id="changePasswordModal">
+    <div class="p-modal__box">
+      <h3>Change Your Password</h3>
+      <p class="p-muted">Please set a new password before continuing.</p>
+      <input id="teacherCurrentPassword" class="p-input" type="password" placeholder="Current password" style="margin-bottom: var(--p-space-3);" />
+      <input id="teacherNewPassword" class="p-input" type="password" placeholder="New password (min 6 chars)" style="margin-bottom: var(--p-space-3);" />
+      <input id="teacherConfirmPassword" class="p-input" type="password" placeholder="Confirm new password" style="margin-bottom: var(--p-space-4);" />
+      <button class="p-btn p-btn--accent" id="saveTeacherPasswordBtn" style="width:100%;">Update Password</button>
+      <p class="p-muted" id="teacherPasswordFeedback" style="margin-top: var(--p-space-3);"></p>
+    </div>
+  </div>
+
+  <main class="p-page">
+    <header class="p-page-header p-page-header--bar">
+      <div>
+        <h2 style="margin:0;font-size:1.5rem;font-weight:700;letter-spacing:-0.03em;color:var(--p-red-800);">ESEMI Teacher Portal</h2>
+        <p class="p-muted" id="teacherWelcome" style="margin:var(--p-space-2) 0 0;"></p>
+        <p class="p-muted" style="margin:var(--p-space-1) 0 0;">You signed in with login ID <code>teacher</code>.</p>
+      </div>
+      <div class="p-row">
+        <button class="p-btn p-btn--ghost p-btn--sm" id="openTeacherPasswordBtn">Change Password</button>
+        <button class="p-btn p-btn--ghost p-btn--sm" id="logoutTeacherBtn">Sign out</button>
+      </div>
+    </header>
+
+    <section class="p-card p-section">
+      <h3>My Teaching Assignments</h3>
+      <div id="assignmentsBox" class="p-muted">Loading assignments...</div>
+    </section>
+
+    <section class="p-card p-section">
+      <h3>Add / Edit Grades</h3>
+      <div class="p-row">
+        <select id="assignmentSelect"><option value="">Select assignment</option></select>
+        <input id="gradeYear" placeholder="Academic Year" />
+        <input id="gradeSemester" placeholder="Semester" />
+        <input id="gradePeriod" placeholder="Period" />
+        <button class="p-btn p-btn--ghost p-btn--sm" id="loadStudentsBtn">Load Students</button>
+      </div>
+      <p class="p-muted" style="margin-top: var(--p-space-3);">Grades are saved in the database but stay hidden from students until admin reviews and publishes them.</p>
+      <div class="p-table-wrap" style="margin-top: var(--p-space-4);">
+        <table class="p-table">
+          <thead>
+            <tr><th>Student</th><th>Quiz</th><th>Classwork</th><th>Exam</th><th>Total</th><th>Action</th></tr>
+          </thead>
+          <tbody id="teacherGradesBody">
+            <tr><td colspan="6" class="p-muted">No students loaded.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    const API_BASE = isLocal ? "http://localhost:4000/api" : "/api";
+    const teacherToken = localStorage.getItem("esemiTeacherToken");
+    const teacherName = localStorage.getItem("esemiTeacherName") || "Teacher";
+    const assignments = [];
+    let students = [];
+    const mustChangePassword = localStorage.getItem("esemiTeacherMustChangePassword") === "true";
+    if (!teacherToken) window.location.href = "login.html";
+    document.getElementById("teacherWelcome").textContent = `Signed in as ${teacherName}`;
+
+    function showPasswordModal(show) {
+      const modal = document.getElementById("changePasswordModal");
+      modal.classList.toggle("is-open", show);
+      if (show) {
+        document.getElementById("teacherCurrentPassword").value = "";
+        document.getElementById("teacherNewPassword").value = "";
+        document.getElementById("teacherConfirmPassword").value = "";
+        document.getElementById("teacherPasswordFeedback").textContent = "";
+      }
+    }
+    if (mustChangePassword) showPasswordModal(true);
+
+    async function changeTeacherPassword() {
+      const current = document.getElementById("teacherCurrentPassword").value;
+      const next = document.getElementById("teacherNewPassword").value;
+      const confirm = document.getElementById("teacherConfirmPassword").value;
+      const feedback = document.getElementById("teacherPasswordFeedback");
+      if (!next || next.length < 6) {
+        feedback.textContent = "New password must be at least 6 characters.";
+        return;
+      }
+      if (next !== confirm) {
+        feedback.textContent = "New password and confirmation do not match.";
+        return;
+      }
+      const response = await fetch(`${API_BASE}/teacher/change-password`, {
+        method: "POST",
+        headers: { ...headers(), "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: current, newPassword: next }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        feedback.textContent = data.message || "Could not update password.";
+        return;
+      }
+      localStorage.setItem("esemiTeacherMustChangePassword", "false");
+      showPasswordModal(false);
+      PUI.success(data.message || "Password updated successfully.");
+      feedback.textContent = "";
+    }
+
+    function headers() { return { Authorization: `Bearer ${teacherToken}` }; }
+    function selectedAssignment() {
+      const id = document.getElementById("assignmentSelect").value;
+      return assignments.find((a) => String(a.ID) === String(id));
+    }
+
+    async function loadAssignments() {
+      const response = await fetch(`${API_BASE}/teacher/me/assignments`, { headers: headers() });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Could not load assignments.");
+      assignments.splice(0, assignments.length, ...(data.assignments || []));
+      const select = document.getElementById("assignmentSelect");
+      select.innerHTML = `<option value="">Select assignment</option>` + assignments.map((a) =>
+        `<option value="${a.ID}">${a.Grade} ${a.GradeSection} - ${a.Subject}${a.AcademicYear ? ` (${a.AcademicYear})` : ""}</option>`
+      ).join("");
+      document.getElementById("assignmentsBox").innerHTML = assignments.length
+        ? assignments.map((a) => `<div style="padding:var(--p-space-2) 0;border-bottom:1px solid var(--p-border);">${a.Grade} ${a.GradeSection} - ${a.Subject}${a.AcademicYear ? ` (${a.AcademicYear})` : ""}</div>`).join("")
+        : "No assignments yet. Ask admin to assign classes/subjects.";
+    }
+
+    async function loadStudents() {
+      const a = selectedAssignment();
+      if (!a) return;
+      const year = document.getElementById("gradeYear").value.trim() || a.AcademicYear || "";
+      const semester = document.getElementById("gradeSemester").value.trim();
+      const period = document.getElementById("gradePeriod").value.trim();
+      if (!year || !semester || !period) return;
+
+      const params = new URLSearchParams({ grade: a.Grade, section: a.GradeSection, academicYear: year });
+      const studentResp = await fetch(`${API_BASE}/teacher/students?${params.toString()}`, { headers: headers() });
+      const studentData = await studentResp.json();
+      if (!studentResp.ok) throw new Error(studentData.message || "Could not load students.");
+      students = studentData.students || [];
+
+      const existingResp = await fetch(`${API_BASE}/teacher/grades?` + new URLSearchParams({
+        grade: a.Grade, section: a.GradeSection, subject: a.Subject, academicYear: year, semester, period,
+      }).toString(), { headers: headers() });
+      const existingData = await existingResp.json();
+      if (!existingResp.ok) throw new Error(existingData.message || "Could not load existing grades.");
+      const byStudent = {};
+      (existingData.grades || []).forEach((g) => { byStudent[String(g.StudentID)] = g; });
+
+      const tbody = document.getElementById("teacherGradesBody");
+      tbody.innerHTML = students.length ? students.map((s) => {
+        const g = byStudent[s.studentId] || {};
+        return `<tr>
+          <td>${s.studentName} (${s.studentId})</td>
+          <td><input class="p-input p-input--narrow" id="q_${s.studentId}" value="${g.QuizScore ?? ""}" /></td>
+          <td><input class="p-input p-input--narrow" id="c_${s.studentId}" value="${g.ClassworkScore ?? ""}" /></td>
+          <td><input class="p-input p-input--narrow" id="e_${s.studentId}" value="${g.ExamScore ?? ""}" /></td>
+          <td><input class="p-input p-input--narrow" id="t_${s.studentId}" value="${g.TotalMark ?? ""}" /></td>
+          <td><button class="p-btn p-btn--accent p-btn--sm" onclick="saveOne('${s.studentId}')">Save</button></td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="6" class="p-muted">No students found for this class/year.</td></tr>`;
+    }
+
+    async function saveOne(studentId) {
+      const a = selectedAssignment();
+      if (!a) return;
+      const payload = {
+        studentId,
+        grade: a.Grade,
+        section: a.GradeSection,
+        subject: a.Subject,
+        academicYear: document.getElementById("gradeYear").value.trim() || a.AcademicYear || "",
+        semester: document.getElementById("gradeSemester").value.trim(),
+        period: document.getElementById("gradePeriod").value.trim(),
+        quizScore: document.getElementById(`q_${studentId}`).value.trim(),
+        classworkScore: document.getElementById(`c_${studentId}`).value.trim(),
+        examScore: document.getElementById(`e_${studentId}`).value.trim(),
+        totalMark: document.getElementById(`t_${studentId}`).value.trim(),
+      };
+      const response = await fetch(`${API_BASE}/teacher/grades/upsert`, {
+        method: "POST",
+        headers: { ...headers(), "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        PUI.error(data.message || "Save failed.");
+        return;
+      }
+      PUI.success("Saved. Awaiting admin publish.");
+    }
+
+    window.saveOne = saveOne;
+    document.getElementById("loadStudentsBtn").addEventListener("click", loadStudents);
+    document.getElementById("openTeacherPasswordBtn").addEventListener("click", () => showPasswordModal(true));
+    document.getElementById("saveTeacherPasswordBtn").addEventListener("click", changeTeacherPassword);
+    document.getElementById("logoutTeacherBtn").addEventListener("click", () => {
+      localStorage.removeItem("esemiTeacherToken");
+      localStorage.removeItem("esemiTeacherName");
+      localStorage.removeItem("esemiTeacherMustChangePassword");
+      window.location.href = "login.html";
+    });
+    loadAssignments().catch((e) => PUI.error(e.message));
+  </script>
+</body>
+</html>

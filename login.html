@@ -3,166 +3,236 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login | Elizabeth Sele Mulbah Institute</title>
-
-  <link rel="stylesheet" href="shared.css" />
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Inter', sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background: radial-gradient(circle at top right, var(--brand-red-dark), var(--brand-bg));
-      color: var(--brand-text);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
-
-    [data-theme="dark"] body {
-       background: radial-gradient(circle at top right, #3b0707, var(--brand-bg));
-    }
-
-    .login-container {
-      background: var(--card-bg);
-      backdrop-filter: blur(15px);
-      border-radius: 24px;
-      padding: 3rem 2rem;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .login-container h2 {
-      text-align: center;
-      margin-bottom: 0.5rem;
-      font-weight: 700;
-      color: var(--brand-red);
-    }
-
-    .login-subtitle {
-      text-align: center;
-      margin-bottom: 2rem;
-      color: var(--brand-text);
-      opacity: 0.7;
-      font-size: 0.9rem;
-    }
-
-    .input-group {
-      margin-bottom: 1rem;
-    }
-
-    .input-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 0.85rem;
-      border-radius: 12px;
-      border: 1px solid rgba(0,0,0,0.1);
-      outline: none;
-      background: rgba(0,0,0,0.02);
-      color: var(--brand-text);
-      transition: var(--transition-base);
-    }
-
-    .input-group input:focus {
-      border-color: var(--brand-red);
-      background: var(--card-bg);
-      box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
-    }
-
-    .login-btn {
-      width: 100%;
-      padding: 0.85rem;
-      margin-top: 1.5rem;
-      background: var(--brand-red);
-      border: none;
-      border-radius: 12px;
-      font-weight: 700;
-      color: #fff;
-      cursor: pointer;
-      transition: var(--transition-base);
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
-    }
-
-    .login-btn:hover {
-      background: var(--brand-red-dark);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
-    }
-
-    .footer-text {
-      text-align: center;
-      font-size: 0.85rem;
-      color: #ccc;
-      margin-top: 1.5rem;
-    }
-  </style>
+  <title>Student Portal Login | ESEMI</title>
+  <meta name="description" content="Secure student portal login for ESEMI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="portal-ui.css" />
+  <script src="portal-ui.js"></script>
 </head>
-<body>
-  <div class="login-container reveal">
-    <h2>ESEMI</h2>
-    <p class="login-subtitle">Student Portal Access</p>
+<body class="p-login p-animate-in">
+  <main class="p-login-card">
+    <div class="p-login-brand">
+      <img src="assets/esemilogo.png" alt="ESEMI logo" />
+      <h1>ESEMI Student Portal</h1>
+    </div>
+    <p class="p-login-subtitle">Sign in with your Student ID and password.</p>
     <form id="loginForm">
-      <div class="input-group">
-        <label for="studentId">Student ID (use your email)</label>
-        <input type="text" id="studentId" required />
+      <label class="p-label" for="studentId">Student ID</label>
+      <input class="p-input" id="studentId" name="studentId" autocomplete="username" required style="margin-bottom: var(--p-space-4);" />
+      <label class="p-label" for="password">Password</label>
+      <input class="p-input" id="password" name="password" type="password" autocomplete="current-password" required style="margin-bottom: var(--p-space-4);" />
+      <div class="p-login-actions">
+        <button class="p-btn p-btn--accent" type="submit" id="loginBtn">Sign In</button>
+        <button class="p-btn p-btn--ghost" type="button" id="forgotBtn">Forgot Password</button>
       </div>
-      <div class="input-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" required />
-      </div>
-      <button type="submit" class="login-btn">Login</button>
+      <div id="loginMessage" class="p-message"></div>
     </form>
-    <div class="footer-text">
-      © 2025 Elizabeth Sele Mulbah Institute. All rights reserved.
+    <p class="p-login-tip">
+      <strong>Students:</strong> Enter your Student ID number. On your first login, your password is the same as your Student ID. You can change it after signing in.
+    </p>
+  </main>
+
+  <div class="p-modal" id="adminRecoverModal" aria-hidden="true">
+    <div class="p-modal__box">
+      <h3>Admin Password Recovery</h3>
+      <p class="p-muted">Sign in with an authorized Google account, then set a new admin password.</p>
+      <div id="googleSignInMount" style="margin: var(--p-space-4) 0;"></div>
+      <p class="p-muted" id="googleRecoverStatus" style="margin-top: var(--p-space-3);"></p>
+      <label class="p-label" for="recoverNewPassword" style="margin-top: var(--p-space-4);">New Admin Password</label>
+      <input class="p-input" id="recoverNewPassword" type="password" placeholder="At least 6 characters" />
+      <div class="p-login-actions" style="margin-top: var(--p-space-4);">
+        <button class="p-btn p-btn--accent" type="button" id="confirmRecoverBtn">Reset Admin Password</button>
+        <button class="p-btn p-btn--ghost" type="button" id="closeRecoverModalBtn">Cancel</button>
+      </div>
     </div>
   </div>
 
-  <script src="firebase-config.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+    const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    const API_BASE = isLocal ? "http://localhost:4000/api" : "/api";
+    const form = document.getElementById("loginForm");
+    const loginBtn = document.getElementById("loginBtn");
+    const forgotBtn = document.getElementById("forgotBtn");
+    const messageEl = document.getElementById("loginMessage");
+    const adminRecoverModal = document.getElementById("adminRecoverModal");
+    const googleRecoverStatus = document.getElementById("googleRecoverStatus");
+    let portalConfig = { googleClientId: null };
+    let adminRecoverIdToken = "";
 
-    // Handle login
-    document.getElementById("loginForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const email = document.getElementById("studentId").value.trim();
-      const password = document.getElementById("password").value;
+    function showMessage(type, text) {
+      messageEl.className = `p-message p-message--${type}`;
+      messageEl.textContent = text;
+      messageEl.style.display = "block";
+    }
 
-      const loginBtn = document.querySelector(".login-btn");
-      loginBtn.innerText = "Logging in...";
-      loginBtn.disabled = true;
+    async function parseJsonResponse(response) {
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        throw new Error("Login server unavailable. Please ensure the ESEMI API is running on port 4000.");
+      }
+    }
 
-      auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
+    async function loadPortalConfig() {
+      try {
+        const response = await fetch(`${API_BASE}/public-config`);
+        portalConfig = await parseJsonResponse(response);
+      } catch {
+        portalConfig = { googleClientId: null };
+      }
+    }
 
-          alert(`✅ Login successful!\nWelcome, ${user.email}`);
-          // Redirect to student dashboard after successful login
-          window.location.href = "dashboard.html";
-        })
-        .catch((error) => {
-          alert(`❌ Login failed:\n${error.message}`);
-          loginBtn.innerText = "Login";
-          loginBtn.disabled = false;
+    function openAdminRecoverModal() {
+      adminRecoverModal.classList.add("is-open");
+      adminRecoverModal.setAttribute("aria-hidden", "false");
+      adminRecoverIdToken = "";
+      googleRecoverStatus.textContent = "";
+      document.getElementById("recoverNewPassword").value = "";
+      initGoogleRecoverButton();
+    }
+
+    function closeAdminRecoverModal() {
+      adminRecoverModal.classList.remove("is-open");
+      adminRecoverModal.setAttribute("aria-hidden", "true");
+      adminRecoverIdToken = "";
+    }
+
+    function initGoogleRecoverButton() {
+      const mount = document.getElementById("googleSignInMount");
+      mount.innerHTML = "";
+      if (!portalConfig.googleClientId) {
+        mount.innerHTML = `<p class="p-muted" style="color: var(--p-accent);">Google recovery is not configured yet. Ask IT to set GOOGLE_CLIENT_ID in the API.</p>`;
+        return;
+      }
+      if (!window.google?.accounts?.id) {
+        mount.innerHTML = `<p class="p-muted">Loading Google Sign-In...</p>`;
+        window.setTimeout(initGoogleRecoverButton, 400);
+        return;
+      }
+      window.google.accounts.id.initialize({
+        client_id: portalConfig.googleClientId,
+        callback: (response) => {
+          adminRecoverIdToken = response.credential || "";
+          googleRecoverStatus.textContent = adminRecoverIdToken
+            ? "Google sign-in successful. Enter a new admin password below."
+            : "Google sign-in failed. Try again.";
+          googleRecoverStatus.style.color = adminRecoverIdToken ? "#047857" : "var(--p-accent)";
+        },
+      });
+      window.google.accounts.id.renderButton(mount, {
+        theme: "outline",
+        size: "large",
+        text: "signin_with",
+        shape: "pill",
+        width: 320,
+      });
+    }
+
+    async function confirmAdminRecover() {
+      try {
+        if (!adminRecoverIdToken) throw new Error("Sign in with Google first.");
+        const newPassword = document.getElementById("recoverNewPassword").value;
+        if (!newPassword || newPassword.length < 6) throw new Error("New password must be at least 6 characters.");
+        const response = await fetch(`${API_BASE}/admin/recover-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken: adminRecoverIdToken, newPassword }),
         });
+        const payload = await parseJsonResponse(response);
+        if (!response.ok) throw new Error(payload.message || "Could not reset admin password.");
+        closeAdminRecoverModal();
+        PUI.success(payload.message || "Admin password reset successfully.");
+      } catch (error) {
+        googleRecoverStatus.textContent = error.message;
+        googleRecoverStatus.style.color = "var(--p-accent)";
+      }
+    }
+
+    function resolveLoginType(identifier) {
+      const value = identifier.trim();
+      const lower = value.toLowerCase();
+      if (lower === "admin") return "admin";
+      if (lower === "teacher") return "teacher";
+      if (/^\d+$/.test(value)) return "student";
+      return "invalid";
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      messageEl.style.display = "none";
+      const studentId = document.getElementById("studentId").value.trim();
+      const password = document.getElementById("password").value;
+      const loginType = resolveLoginType(studentId);
+      loginBtn.disabled = true;
+      loginBtn.textContent = "Signing in...";
+      try {
+        if (loginType === "invalid") {
+          throw new Error("Enter your numeric Student ID to sign in.");
+        }
+        if (loginType === "admin") {
+          const adminResponse = await fetch(`${API_BASE}/admin/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: "admin", password }),
+          });
+          const adminPayload = await parseJsonResponse(adminResponse);
+          if (!adminResponse.ok) throw new Error(adminPayload.message || "Admin login failed.");
+          localStorage.setItem("esemiAdminToken", adminPayload.token);
+          localStorage.setItem("esemiAdminSession", "active");
+          window.location.href = "admin.html";
+          return;
+        }
+
+        if (loginType === "teacher") {
+          const teacherResponse = await fetch(`${API_BASE}/teacher/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ loginId: "teacher", password }),
+          });
+          const teacherPayload = await parseJsonResponse(teacherResponse);
+          if (!teacherResponse.ok) throw new Error(teacherPayload.message || "Teacher login failed.");
+          localStorage.setItem("esemiTeacherToken", teacherPayload.token);
+          localStorage.setItem("esemiTeacherName", teacherPayload.fullName || teacherPayload.username || "Teacher");
+          localStorage.setItem("esemiTeacherMustChangePassword", String(Boolean(teacherPayload.mustChangePassword)));
+          window.location.href = "teacher.html";
+          return;
+        }
+
+        const response = await fetch(`${API_BASE}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ studentId, password }),
+        });
+        const payload = await parseJsonResponse(response);
+        if (!response.ok) throw new Error(payload.message || "Login failed.");
+        localStorage.setItem("esemiPortalToken", payload.token);
+        localStorage.setItem("esemiStudentId", payload.studentId);
+        localStorage.setItem("esemiMustChangePassword", String(payload.mustChangePassword));
+        window.location.href = "dashboard.html";
+      } catch (error) {
+        showMessage("error", error.message);
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Sign In";
+      }
     });
+
+    forgotBtn.addEventListener("click", () => {
+      const loginType = resolveLoginType(document.getElementById("studentId").value.trim());
+      if (loginType === "admin") {
+        openAdminRecoverModal();
+        return;
+      }
+      PUI.info("Please contact the school admin office to reset your password.");
+    });
+
+    document.getElementById("confirmRecoverBtn").addEventListener("click", confirmAdminRecover);
+    document.getElementById("closeRecoverModalBtn").addEventListener("click", closeAdminRecoverModal);
+    loadPortalConfig();
   </script>
-  <script src="shared.js"></script>
 </body>
 </html>

@@ -3,474 +3,332 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Student Dashboard | Elizabeth Sele Mulbah Institute</title>
-  <meta name="description" content="Your personal student dashboard — view your profile and grades at ESEMI." />
-
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="shared.css" />
-
-  <!-- Firebase SDKs v8 -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
+  <title>Student Portal | ESEMI</title>
+  <meta name="description" content="Student portal for profile, grades, finance, and honor lists." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="portal-ui.css" />
+  <script src="portal-ui.js"></script>
   <style>
-    /* ========== Base ========== */
-    * { box-sizing: border-box; }
-
-    body {
-      padding-top: 80px;
-      min-height: 100vh;
-    }
-
-    /* ========== Top Bar ========== */
-    .topbar {
-      background-color: var(--navbar-bg);
-      border-bottom: 2px solid var(--brand-red);
-      position: fixed;
-      top: 0;
-      width: 100%;
-      z-index: 1000;
-      padding: 8px 30px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-      transition: var(--transition-base);
-    }
-
-    .topbar-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-    }
-
-    .topbar-brand img {
-      height: 50px;
-    }
-
-    .topbar-brand span {
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: var(--brand-red);
-    }
-
-    .logout-btn {
-      background-color: var(--brand-red);
-      color: #fff;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 30px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: var(--transition-base);
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
-    }
-
-    .logout-btn:hover {
-      background-color: var(--brand-red-dark);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
-    }
-
-    /* ========== Loading / Auth Guard ========== */
-    #authGuard {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 60vh;
-      color: #888;
-    }
-
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 5px solid #f0f0f0;
-      border-top-color: #b30000;
-      border-radius: 50%;
-      animation: spin 0.9s linear infinite;
-      margin-bottom: 16px;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ========== Dashboard Content ========== */
-    #dashboardContent { display: none; }
-
-    .page-wrapper {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 30px 20px 60px;
-    }
-
-    /* ========== Profile Card ========== */
-    .profile-card {
-      background: linear-gradient(135deg, #b30000 0%, #5a0000 100%);
-      color: #fff;
-      border-radius: 16px;
-      padding: 36px 30px;
-      display: flex;
-      align-items: center;
-      gap: 30px;
-      margin-bottom: 36px;
-      box-shadow: 0 8px 30px rgba(179,0,0,0.25);
-      flex-wrap: wrap;
-    }
-
-    .profile-avatar {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      border: 4px solid rgba(255,255,255,0.4);
-      object-fit: cover;
-      background-color: rgba(255,255,255,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.8rem;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .profile-info h2 {
-      font-size: 1.7rem;
-      font-weight: 700;
-      margin: 0 0 6px;
-      color: #fff;
-    }
-
-    .profile-info p {
-      margin: 3px 0;
-      font-size: 0.95rem;
-      opacity: 0.88;
-    }
-
-    .profile-badge {
-      background: rgba(255,255,255,0.2);
-      border-radius: 20px;
-      padding: 4px 14px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      display: inline-block;
-      margin-top: 8px;
-      letter-spacing: 0.5px;
-    }
-
-    /* ========== Info Grid ========== */
-    .info-grid {
+    .finance-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 18px;
-      margin-bottom: 36px;
+      grid-template-columns: repeat(3, minmax(140px, 1fr));
+      gap: var(--p-space-4);
+      margin-bottom: var(--p-space-5);
     }
-
-    .info-tile {
-      background: #fff;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      border-left: 4px solid #b30000;
+    .finance-card {
+      background: var(--p-surface);
+      border: 1px solid var(--p-border);
+      border-radius: var(--p-radius-lg);
+      padding: var(--p-space-5);
     }
-
-    .info-tile .tile-label {
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #888;
-      margin-bottom: 6px;
+    .finance-card.highlight { border-color: var(--p-red-500); background: var(--p-red-50); }
+    .finance-card .amount { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin-top: var(--p-space-1); }
+    .finance-card.highlight .amount { color: var(--p-red-700); }
+    .finance-notice {
+      background: var(--p-bg-subtle);
+      border: 1px dashed var(--p-border-strong);
+      border-radius: var(--p-radius-md);
+      padding: var(--p-space-4) var(--p-space-5);
+      margin-bottom: var(--p-space-5);
+      font-size: 0.875rem;
+      color: var(--p-text-muted);
     }
-
-    .info-tile .tile-value {
-      font-size: 1.1rem;
+    .status-pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: var(--p-radius-full);
+      font-size: 0.75rem;
       font-weight: 600;
-      color: #222;
+      background: #fef3c7;
+      color: #92400e;
     }
-
-    /* ========== Grades Section ========== */
-    .section-header {
+    .btn-row { display: flex; gap: var(--p-space-2); flex-wrap: wrap; }
+    .p-photo-input-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .p-photo-picker__preview {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 18px;
+      gap: var(--p-space-3);
+      margin-bottom: var(--p-space-3);
+      min-height: 48px;
     }
-
-    .section-header h3 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #b30000;
-      margin: 0;
+    .p-photo-picker__preview img {
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: var(--p-radius-md);
+      border: 1px solid var(--p-red-200);
     }
-
-    .grades-table-wrapper {
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      overflow: hidden;
-    }
-
-    .grades-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .grades-table thead {
-      background-color: #b30000;
-      color: #fff;
-    }
-
-    .grades-table thead th {
-      padding: 14px 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-    }
-
-    .grades-table tbody tr {
-      border-bottom: 1px solid #f0f0f0;
-      transition: background 0.2s;
-    }
-
-    .grades-table tbody tr:hover {
-      background-color: #fff5f5;
-    }
-
-    .grades-table tbody td {
-      padding: 14px 20px;
-      font-size: 0.95rem;
-    }
-
-    .grade-pill {
-      display: inline-block;
-      padding: 4px 14px;
-      border-radius: 20px;
-      font-weight: 700;
-      font-size: 0.85rem;
-    }
-
-    .grade-a { background: #d4edda; color: #155724; }
-    .grade-b { background: #cce5ff; color: #004085; }
-    .grade-c { background: #fff3cd; color: #856404; }
-    .grade-d { background: #fde8d8; color: #7f3200; }
-    .grade-f { background: #f8d7da; color: #721c24; }
-
-    .no-grades {
-      text-align: center;
-      padding: 40px;
-      color: #aaa;
-      font-size: 0.95rem;
-    }
-
-    /* ========== Responsive ========== */
-    @media (max-width: 600px) {
-      .profile-card { flex-direction: column; text-align: center; }
-      .profile-avatar { margin: 0 auto; }
-      .topbar-brand span { display: none; }
-    }
+    .p-avatar--filled.is-clickable { cursor: pointer; }
   </style>
 </head>
-<body>
-
-  <!-- Top Navigation Bar -->
-  <div class="topbar">
-    <a class="topbar-brand d-flex align-items-center" href="Home.html">
-      <img src="assets/esemilogo.png" alt="ESEMI Logo" class="navbar-logo" />
-      <span>ESEMI</span>
-    </a>
-    <button class="logout-btn" onclick="logoutStudent()">🚪 Logout</button>
-  </div>
-
-  <!-- Auth loading state -->
-  <div id="authGuard">
-    <div class="spinner"></div>
-    <p>Verifying your session…</p>
-  </div>
-
-  <!-- Dashboard (shown only when authenticated) -->
-  <div id="dashboardContent">
-    <div class="page-wrapper">
-
-      <!-- Profile Card -->
-      <div class="profile-card" id="profileCard">
-        <div class="profile-avatar" id="avatarInitial">?</div>
-        <div class="profile-info">
-          <h2 id="studentName">Loading…</h2>
-          <p id="studentEmail"></p>
-          <p id="studentClass"></p>
-          <span class="profile-badge" id="studentId"></span>
-        </div>
+<body class="p-portal">
+  <div class="p-app p-animate-in">
+    <aside class="p-sidebar">
+      <div class="p-sidebar__brand">
+        <img src="assets/esemilogo.png" alt="ESEMI logo" />
+        <span>ESEMI Portal</span>
       </div>
+      <nav class="p-nav" id="menu">
+        <button class="p-nav__btn is-active" data-view="overview">Overview</button>
+        <button class="p-nav__btn" data-view="profile">Profile</button>
+        <button class="p-nav__btn" data-view="grades">Grades</button>
+        <button class="p-nav__btn" data-view="schedule">Class Schedule</button>
+        <button class="p-nav__btn" data-view="finance">Finance</button>
+        <button class="p-nav__btn" data-view="classHonor">Class Honor Roll</button>
+        <button class="p-nav__btn" data-view="schoolHonor">School Honor List</button>
+      </nav>
+    </aside>
 
-      <!-- Info Tiles -->
-      <div class="info-grid">
-        <div class="info-tile">
-          <div class="tile-label">Student ID</div>
-          <div class="tile-value" id="tileStudentId">—</div>
-        </div>
-        <div class="info-tile">
-          <div class="tile-label">Class / Grade</div>
-          <div class="tile-value" id="tileClass">—</div>
-        </div>
-        <div class="info-tile">
-          <div class="tile-label">Section</div>
-          <div class="tile-value" id="tileSection">—</div>
-        </div>
-        <div class="info-tile">
-          <div class="tile-label">Academic Year</div>
-          <div class="tile-value" id="tileYear">—</div>
-        </div>
-      </div>
+    <main class="p-main">
+      <header class="p-page-header">
+        <h2>Student Portal</h2>
+        <button class="p-btn p-btn--ghost p-btn--sm" id="logoutBtn">Sign out</button>
+      </header>
 
-      <!-- Grades Section -->
-      <div class="section-header">
-        <h3>📊 My Grades</h3>
-      </div>
+      <section class="p-stats">
+        <article class="p-card"><div class="p-card__label">Student ID</div><div class="p-card__value" id="summaryId">-</div></article>
+        <article class="p-card"><div class="p-card__label">Class</div><div class="p-card__value" id="summaryClass">-</div></article>
+        <article class="p-card"><div class="p-card__label">Academic Year</div><div class="p-card__value" id="summaryYear">-</div></article>
+        <article class="p-card"><div class="p-card__label">Current Period</div><div class="p-card__value" id="summaryPeriod">-</div></article>
+      </section>
 
-      <div class="grades-table-wrapper">
-        <div id="gradesContainer">
-          <div class="no-grades">
-            <div class="spinner" style="margin: 0 auto 12px;"></div>
-            Loading grades…
+      <section class="p-panel">
+        <div class="p-panel__head">
+          <h3 id="panelTitle">Overview</h3>
+          <div class="p-filters" id="filtersBox" style="display:none;">
+            <select class="p-select" id="filterYear"><option value="">Year</option></select>
+            <select class="p-select" id="filterSemester"><option value="">Semester</option></select>
+            <select class="p-select" id="filterPeriod"><option value="">Period</option></select>
           </div>
         </div>
-      </div>
+        <div class="p-panel__body" id="panelBody"><p class="p-muted">Loading portal data...</p></div>
+      </section>
+    </main>
+  </div>
 
+  <div class="p-modal password-modal" id="passwordModal">
+    <div class="p-modal__box">
+      <h4>Update your password</h4>
+      <p class="p-muted">Your account uses the default password. Choose a new one or keep it for now.</p>
+      <div style="margin: var(--p-space-4) 0;"><input class="p-input" id="currentPassword" type="password" placeholder="Current password" /></div>
+      <div style="margin-bottom: var(--p-space-4);"><input class="p-input" id="newPassword" type="password" placeholder="New password (min 6 chars)" /></div>
+      <div style="margin-bottom: var(--p-space-4);"><input class="p-input" id="confirmPassword" type="password" placeholder="Confirm new password" /></div>
+      <div class="btn-row">
+        <button class="p-btn p-btn--accent" id="changePasswordBtn">Change Password</button>
+        <button class="p-btn p-btn--ghost" id="keepPasswordBtn">Keep For Now</button>
+      </div>
+      <p class="p-muted" id="passwordFeedback" style="margin-top: var(--p-space-3);"></p>
+    </div>
+  </div>
+  <div class="p-modal edit-modal" id="editProfileModal">
+    <div class="p-modal__box p-modal__box--wide">
+      <h4 style="margin:0 0 var(--p-space-4);">Edit My Profile</h4>
+      <div class="p-form-grid">
+        <div><label class="p-label">Nationality</label><input class="p-input" id="editNationality" /></div>
+        <div><label class="p-label">Address</label><input class="p-input" id="editAddress" /></div>
+        <div><label class="p-label">Father Name</label><input class="p-input" id="editFatherName" /></div>
+        <div><label class="p-label">Father Contact</label><input class="p-input" id="editFatherContact" /></div>
+        <div><label class="p-label">Mother Name</label><input class="p-input" id="editMotherName" /></div>
+        <div><label class="p-label">Mother Contact</label><input class="p-input" id="editMotherContact" /></div>
+        <div><label class="p-label">Emergency Contact Name</label><input class="p-input" id="editEmergencyName" /></div>
+        <div><label class="p-label">Emergency Contact No</label><input class="p-input" id="editEmergencyNo" /></div>
+        <div><label class="p-label">Home Phone</label><input class="p-input" id="editHomePhone" /></div>
+        <div class="p-photo-picker" style="grid-column: 1 / -1;">
+          <label class="p-label">Profile photo</label>
+          <div class="p-photo-picker__preview" id="editPhotoPreview"><span class="p-muted">No new photo selected</span></div>
+          <div class="btn-row">
+            <button type="button" class="p-btn p-btn--accent p-btn--sm" id="takePhotoBtn">Take photo</button>
+            <button type="button" class="p-btn p-btn--ghost p-btn--sm" id="chooseAlbumBtn">Choose from album</button>
+          </div>
+          <p class="p-muted" style="margin: var(--p-space-2) 0 0; font-size: 0.8125rem;">On your phone, Take photo opens the camera and Choose from album opens your photo library.</p>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top: var(--p-space-4);">
+        <button class="p-btn p-btn--accent" id="saveProfileBtn">Save Changes</button>
+        <button class="p-btn p-btn--ghost" id="cancelProfileBtn">Cancel</button>
+      </div>
+      <p class="p-muted" id="editProfileFeedback" style="margin-top: var(--p-space-3);"></p>
     </div>
   </div>
 
-  <script src="firebase-config.js"></script>
-  <script>
-    // ──────────────────────────────────────────
-    // Firebase Init
-    // ──────────────────────────────────────────
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db   = firebase.firestore();
+  <!-- Hidden inputs for mobile camera + photo album (must stay in DOM) -->
+  <input type="file" id="photoPickCamera" class="p-photo-input-hidden" accept="image/*" capture="user" tabindex="-1" aria-hidden="true" />
+  <input type="file" id="photoPickAlbum" class="p-photo-input-hidden" accept="image/*" tabindex="-1" aria-hidden="true" />
 
-    // ──────────────────────────────────────────
-    // Auth Guard — redirect to login if not signed in
-    // ──────────────────────────────────────────
-    auth.onAuthStateChanged(function (user) {
-      if (!user) {
-        // Not logged in → send back to login page
+  <script>
+    const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    const API_BASE = isLocal ? "http://localhost:4000/api" : "/api";
+    const FILE_BASE = isLocal ? "http://localhost:4000" : window.location.origin;
+    const token = localStorage.getItem("esemiPortalToken");
+    const menu = document.getElementById("menu");
+    const panelBody = document.getElementById("panelBody");
+    const panelTitle = document.getElementById("panelTitle");
+    const filtersBox = document.getElementById("filtersBox");
+    const filterYear = document.getElementById("filterYear");
+    const filterSemester = document.getElementById("filterSemester");
+    const filterPeriod = document.getElementById("filterPeriod");
+    let termOptions = { years: [], semestersByYear: {}, periodsByYearSemester: {} };
+    let state = { profile: null, currentView: "overview", classHonorMeta: null, schoolHonorMeta: null };
+    let pendingPhotoFile = null;
+    let pendingPhotoPreviewUrl = null;
+
+    if (!token) window.location.href = "login.html";
+
+    function authHeaders() {
+      return { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+    }
+
+    function clearStudentSession() {
+      localStorage.removeItem("esemiPortalToken");
+      localStorage.removeItem("esemiStudentId");
+      localStorage.removeItem("esemiMustChangePassword");
+    }
+
+    async function apiFetch(path, options = {}) {
+      const response = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: { ...authHeaders(), ...(options.headers || {}) },
+      });
+      if (response.status === 401 || response.status === 403) {
+        clearStudentSession();
         window.location.href = "login.html";
+        throw new Error("Session expired. Please sign in again.");
+      }
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error("Could not read server response.");
+      }
+      if (!response.ok) throw new Error(data.message || "Request failed.");
+      return data;
+    }
+
+    function hasStudentPhoto(profile) {
+      return Boolean(String(profile?.photoBase64 || "").trim());
+    }
+
+    function renderStudentAvatar(profile, { clickable = false } = {}) {
+      if (hasStudentPhoto(profile)) {
+        const raw = String(profile.photoBase64);
+        const src = raw.startsWith("data:image") ? raw : `data:image/jpeg;base64,${raw}`;
+        const clickAttrs = clickable
+          ? ` id="avatarUploadTrigger" class="p-avatar p-avatar--filled is-clickable" role="button" tabindex="0" aria-label="Change profile photo"`
+          : ` class="p-avatar p-avatar--filled"`;
+        return `<img${clickAttrs} src="${src}" alt="Your profile photo" />`;
+      }
+      const clickAttrs = clickable ? ` id="avatarUploadTrigger" role="button" tabindex="0" aria-label="Add profile photo"` : "";
+      return `
+        <div class="p-avatar p-avatar--empty"${clickAttrs}>
+          <svg class="p-avatar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          <span class="p-avatar-hint">Add your photo</span>
+        </div>`;
+    }
+
+    function revokePhotoPreviewUrl() {
+      if (pendingPhotoPreviewUrl) {
+        URL.revokeObjectURL(pendingPhotoPreviewUrl);
+        pendingPhotoPreviewUrl = null;
+      }
+    }
+
+    function updatePhotoPreview(file) {
+      const preview = document.getElementById("editPhotoPreview");
+      if (!preview) return;
+      revokePhotoPreviewUrl();
+      if (!file) {
+        preview.innerHTML = "<span class=\"p-muted\">No new photo selected</span>";
         return;
       }
-
-      // Logged in → show dashboard
-      document.getElementById("authGuard").style.display    = "none";
-      document.getElementById("dashboardContent").style.display = "block";
-
-      // Populate email immediately (we always have this)
-      document.getElementById("studentEmail").textContent = user.email;
-
-      // Fetch student profile from Firestore
-      // ⚙️  Assumes a "Students" collection where each document ID = Firebase UID
-      //     and has fields: Name, StudentID, Class, Section, AcademicYear
-      loadStudentProfile(user);
-      loadStudentGrades(user);
-    });
-
-    // ──────────────────────────────────────────
-    // Load Profile
-    // ──────────────────────────────────────────
-    function loadStudentProfile(user) {
-      db.collection("Students").doc(user.uid).get()
-        .then(function (doc) {
-          if (doc.exists) {
-            const data = doc.data();
-
-            const name    = data.Name        || user.email;
-            const id      = data.StudentID   || "—";
-            const cls     = data.Class       || "—";
-            const section = data.Section     || "—";
-            const year    = data.AcademicYear || "2024/2025";
-
-            document.getElementById("studentName").textContent  = name;
-            document.getElementById("studentClass").textContent = cls ? "Class: " + cls : "";
-            document.getElementById("studentId").textContent    = "ID: " + id;
-            document.getElementById("avatarInitial").textContent = name.charAt(0).toUpperCase();
-
-            document.getElementById("tileStudentId").textContent = id;
-            document.getElementById("tileClass").textContent     = cls;
-            document.getElementById("tileSection").textContent   = section;
-            document.getElementById("tileYear").textContent      = year;
-          } else {
-            // Document doesn't exist yet — fall back to email display
-            const name = user.email.split("@")[0];
-            document.getElementById("studentName").textContent    = name;
-            document.getElementById("avatarInitial").textContent  = name.charAt(0).toUpperCase();
-          }
-        })
-        .catch(function (err) {
-          console.error("Could not load student profile:", err);
-          document.getElementById("studentName").textContent = user.email;
-          document.getElementById("avatarInitial").textContent = user.email.charAt(0).toUpperCase();
-        });
+      pendingPhotoPreviewUrl = URL.createObjectURL(file);
+      preview.innerHTML = `<img src="${pendingPhotoPreviewUrl}" alt="Selected photo preview" /><span class="p-muted">${file.name || "Selected image"}</span>`;
     }
 
-    // ──────────────────────────────────────────
-    // Load Grades
-    // ──────────────────────────────────────────
-    function loadStudentGrades(user) {
-      const container = document.getElementById("gradesContainer");
-
-      // ⚙️  Assumes a "Grades" collection where each document has fields:
-      //     StudentUID (string), Subject (string), Score (number), Period (string)
-      db.collection("Grades")
-        .where("StudentUID", "==", user.uid)
-        .orderBy("Subject", "asc")
-        .get()
-        .then(function (snapshot) {
-          if (snapshot.empty) {
-            container.innerHTML = '<div class="no-grades">No grades have been posted yet. Check back later!</div>';
-            return;
-          }
-
-          // Build table
-          let rows = "";
-          snapshot.forEach(function (doc) {
-            const d = doc.data();
-            const score  = d.Score  != null ? d.Score  : "—";
-            const letter = getLetterGrade(score);
-            const pillClass = getGradePillClass(letter);
-
-            rows += `
-              <tr>
-                <td>${d.Subject || "—"}</td>
-                <td>${d.Period  || "—"}</td>
-                <td>${score !== "—" ? score + "%" : "—"}</td>
-                <td><span class="grade-pill ${pillClass}">${letter}</span></td>
-              </tr>`;
-          });
-
-          container.innerHTML = `
-            <table class="grades-table">
-              <thead>
-                <tr>
-                  <th>Subject</th>
-                  <th>Term / Period</th>
-                  <th>Score</th>
-                  <th>Grade</th>
-                </tr>
-              </thead>
-              <tbody>${rows}</tbody>
-            </table>`;
-        })
-        .catch(function (err) {
-          console.error("Error loading grades:", err);
-          container.innerHTML = '<div class="no-grades text-danger">Could not load grades. Please try again later.</div>';
-        });
+    function clearPendingPhoto() {
+      pendingPhotoFile = null;
+      updatePhotoPreview(null);
     }
 
-    // ──────────────────────────────────────────
-    // Helpers
-    // ──────────────────────────────────────────
-    function getLetterGrade(score) {
-      if (score === "—" || score == null) return "—";
+    function triggerPhotoInput(mode) {
+      const input = document.getElementById(mode === "camera" ? "photoPickCamera" : "photoPickAlbum");
+      if (!input) return;
+      input.value = "";
+      input.click();
+    }
+
+    async function handlePhotoSelected(file) {
+      if (!file) return;
+      if (!String(file.type || "").startsWith("image/")) {
+        throw new Error("Please choose an image file.");
+      }
+      if (file.size > 4 * 1024 * 1024) {
+        throw new Error("Photo is too large. Please use an image under 4 MB.");
+      }
+      pendingPhotoFile = file;
+      updatePhotoPreview(file);
+      if (!editProfileModal.classList.contains("is-open")) {
+        openEditProfile({ keepPhoto: true });
+      }
+      const feedback = document.getElementById("editProfileFeedback");
+      if (feedback) {
+        feedback.textContent = "Photo selected. Tap Save Changes to update your profile.";
+        feedback.style.color = "#047857";
+      }
+    }
+
+    function openPhotoPicker() {
+      openEditProfile({ keepPhoto: true, focusPhoto: true });
+    }
+
+    function bindPhotoInputs() {
+      document.getElementById("takePhotoBtn")?.addEventListener("click", () => triggerPhotoInput("camera"));
+      document.getElementById("chooseAlbumBtn")?.addEventListener("click", () => triggerPhotoInput("album"));
+
+      ["photoPickCamera", "photoPickAlbum"].forEach((id) => {
+        document.getElementById(id)?.addEventListener("change", async (event) => {
+          const file = event.target.files?.[0];
+          try {
+            await handlePhotoSelected(file);
+          } catch (error) {
+            const feedback = document.getElementById("editProfileFeedback");
+            if (feedback) {
+              feedback.textContent = error.message;
+              feedback.style.color = "var(--p-accent)";
+            } else {
+              PUI.error(error.message);
+            }
+          }
+        });
+      });
+    }
+
+    function bindAvatarUploadTrigger() {
+      const trigger = document.getElementById("avatarUploadTrigger");
+      if (trigger) {
+        trigger.addEventListener("click", openPhotoPicker);
+        trigger.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openPhotoPicker();
+          }
+        });
+      }
+    }
+
+    function gradeLetter(score) {
+      if (score == null) return "-";
       if (score >= 90) return "A";
       if (score >= 80) return "B";
       if (score >= 70) return "C";
@@ -478,21 +336,532 @@
       return "F";
     }
 
-    function getGradePillClass(letter) {
-      const map = { A: "grade-a", B: "grade-b", C: "grade-c", D: "grade-d", F: "grade-f" };
-      return map[letter] || "";
+    function fillSelect(select, options, label) {
+      select.innerHTML = `<option value="">${label}</option>` + options.map((item) => `<option value="${item}">${item}</option>`).join("");
     }
 
-    function logoutStudent() {
-      if (confirm("Are you sure you want to log out?")) {
-        auth.signOut().then(function () {
-          window.location.href = "login.html";
-        });
+    function refreshTermSelectors() {
+      const years = termOptions.years || [];
+      fillSelect(filterYear, years, "Year");
+
+      const selectedYear = filterYear.value || years[0] || "";
+      if (selectedYear) filterYear.value = selectedYear;
+
+      const semesters = termOptions.semestersByYear?.[selectedYear] || [];
+      fillSelect(filterSemester, semesters, "Semester");
+
+      const selectedSemester = filterSemester.value || (semesters[0] != null ? String(semesters[0]) : "");
+      if (selectedSemester) filterSemester.value = selectedSemester;
+
+      const periods = termOptions.periodsByYearSemester?.[`${selectedYear}|${selectedSemester}`] || [];
+      fillSelect(filterPeriod, periods, "Period");
+
+      const selectedPeriod = filterPeriod.value || periods[0] || "";
+      if (selectedPeriod) filterPeriod.value = selectedPeriod;
+    }
+
+    async function loadTermOptions() {
+      try {
+        const payload = await apiFetch("/student/terms");
+        termOptions = payload.options || termOptions;
+        refreshTermSelectors();
+        if (payload.current?.academicYear) filterYear.value = payload.current.academicYear;
+        if (payload.current?.semester != null) filterSemester.value = String(payload.current.semester);
+        refreshTermSelectors();
+        if (payload.current?.period) filterPeriod.value = payload.current.period;
+      } catch (error) {
+        console.warn("Term options unavailable:", error.message);
       }
     }
-  </script>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="shared.js"></script>
+    function applyProfile(payload) {
+      state.profile = payload;
+      document.getElementById("summaryId").textContent = payload.studentId || "-";
+      document.getElementById("summaryClass").textContent = payload.class ? `${payload.class.grade} ${payload.class.section}` : "-";
+      document.getElementById("summaryYear").textContent = payload.class?.academicYear || "-";
+    }
+
+    function refreshCurrentView() {
+      const views = {
+        overview: renderOverview,
+        profile: renderProfile,
+        grades: renderGrades,
+        schedule: renderSchedule,
+        finance: renderFinance,
+        classHonor: renderClassHonor,
+        schoolHonor: renderSchoolHonor,
+      };
+      const render = views[state.currentView];
+      if (render) render();
+    }
+
+    async function loadProfile() {
+      const payload = await apiFetch("/student/profile");
+      applyProfile(payload);
+      return true;
+    }
+
+    function renderOverview() {
+      const p = state.profile;
+      if (!p) {
+        panelBody.innerHTML = "<p class='p-muted'>Profile not available. Try refreshing or signing in again.</p>";
+        return;
+      }
+      panelTitle.textContent = "Overview";
+      filtersBox.style.display = "none";
+      const photoNotice = hasStudentPhoto(p) ? "" : `
+        <div class="p-photo-notice">
+          <span>You haven't added a profile photo yet. Upload one so staff can identify you easily.</span>
+          <button class="p-btn p-btn--soft p-btn--sm" id="overviewUploadPhotoBtn">Add photo</button>
+        </div>`;
+      panelBody.innerHTML = `
+        <div class="p-profile">
+          ${renderStudentAvatar(p, { clickable: true })}
+          <div class="p-profile__meta">
+            <p><strong>Name</strong><br />${p.fullName || "-"}</p>
+            <p><strong>Student ID</strong><br />${p.studentId || "-"}</p>
+            <p><strong>Status</strong><br />${p.status || "-"}</p>
+            <p><strong>Class</strong><br />${p.class ? `${p.class.grade} / ${p.class.section}` : "-"}</p>
+            <p><strong>Academic Year</strong><br />${p.class?.academicYear || "-"}</p>
+            <p><strong>Semester</strong><br />${p.class?.semester ?? "-"}</p>
+          </div>
+        </div>
+        ${photoNotice}`;
+      bindAvatarUploadTrigger();
+      const uploadBtn = document.getElementById("overviewUploadPhotoBtn");
+      if (uploadBtn) uploadBtn.addEventListener("click", openPhotoPicker);
+    }
+
+    function renderProfile() {
+      const p = state.profile;
+      if (!p) {
+        panelBody.innerHTML = "<p class='p-muted'>Profile not available.</p>";
+        return;
+      }
+      panelTitle.textContent = "Profile";
+      filtersBox.style.display = "none";
+      panelBody.innerHTML = `
+        <div class="p-profile" style="margin-bottom: var(--p-space-6);">
+          ${renderStudentAvatar(p, { clickable: true })}
+          <div>
+            <p class="p-muted" style="margin:0 0 var(--p-space-4);">${hasStudentPhoto(p) ? "Tap your photo or use the buttons below to change it." : "No profile photo yet. Tap the placeholder or choose Take photo / album below."}</p>
+            <div class="btn-row">
+              <button class="p-btn p-btn--accent p-btn--sm" id="editProfileTrigger">Edit Profile</button>
+              <button class="p-btn p-btn--soft p-btn--sm" id="profileTakePhotoBtn">Take photo</button>
+              <button class="p-btn p-btn--ghost p-btn--sm" id="profileAlbumBtn">Choose from album</button>
+              <button class="p-btn p-btn--ghost p-btn--sm" id="openPasswordModalBtn">Change Password</button>
+            </div>
+          </div>
+        </div>
+        <div class="p-table-wrap">
+          <table class="p-table">
+            <tbody>
+              <tr><th>Full Name</th><td>${p.fullName || "-"}</td></tr>
+              <tr><th>Student ID</th><td>${p.studentId || "-"}</td></tr>
+              <tr><th>Sex</th><td>${p.sex || "-"}</td></tr>
+              <tr><th>Date of Birth</th><td>${p.dob ? new Date(p.dob).toLocaleDateString() : "-"}</td></tr>
+              <tr><th>Nationality</th><td>${p.nationality || "-"}</td></tr>
+              <tr><th>Address</th><td>${p.address || "-"}</td></tr>
+              <tr><th>Father Name</th><td>${p.fatherName || "-"}</td></tr>
+              <tr><th>Father Contact</th><td>${p.fatherContact || "-"}</td></tr>
+              <tr><th>Mother Name</th><td>${p.motherName || "-"}</td></tr>
+              <tr><th>Mother Contact</th><td>${p.motherContact || "-"}</td></tr>
+              <tr><th>Emergency Contact</th><td>${p.emergencyContactName || "-"} ${p.emergencyContactNo ? `(${p.emergencyContactNo})` : ""}</td></tr>
+              <tr><th>Home Phone</th><td>${p.homePhone || "-"}</td></tr>
+            </tbody>
+          </table>
+        </div>`;
+      bindAvatarUploadTrigger();
+      const trigger = document.getElementById("editProfileTrigger");
+      if (trigger) {
+        trigger.addEventListener("click", openEditProfile);
+      }
+      document.getElementById("profileTakePhotoBtn")?.addEventListener("click", () => triggerPhotoInput("camera"));
+      document.getElementById("profileAlbumBtn")?.addEventListener("click", () => triggerPhotoInput("album"));
+      const passwordTrigger = document.getElementById("openPasswordModalBtn");
+      if (passwordTrigger) {
+        passwordTrigger.addEventListener("click", openPasswordModal);
+      }
+    }
+
+    function openPasswordModal() {
+      document.getElementById("currentPassword").value = "";
+      document.getElementById("newPassword").value = "";
+      document.getElementById("confirmPassword").value = "";
+      document.getElementById("passwordFeedback").textContent = "";
+      passwordModal.classList.add("is-open");
+    }
+
+    async function renderGrades() {
+      panelTitle.textContent = "Grades";
+      filtersBox.style.display = "flex";
+      const year = String(filterYear.value || "").trim();
+      const semester = String(filterSemester.value || "").trim();
+      const period = String(filterPeriod.value || "").trim();
+      const search = new URLSearchParams();
+      if (year) search.set("academicYear", year);
+      if (semester) search.set("semester", semester);
+      if (period) search.set("period", period);
+        panelBody.innerHTML = "<p class='p-muted'>Loading grades...</p>";
+      const data = await apiFetch(`/student/grades?${search.toString()}`);
+      if (!data.grades.length) {
+        panelBody.innerHTML = "<p class='p-muted'>No grades for selected filters.</p>";
+        return;
+      }
+      const currentPeriod = `${data.grades[0].academicYear} / S${data.grades[0].semester} / P${data.grades[0].period}`;
+      document.getElementById("summaryPeriod").textContent = currentPeriod;
+      panelBody.innerHTML = `
+        <div class="p-table-wrap">
+          <table class="p-table">
+            <thead><tr><th>Subject</th><th>Year</th><th>Sem</th><th>Period</th><th>Score</th><th>Grade</th></tr></thead>
+            <tbody>
+              ${data.grades.map((g) => `
+                <tr>
+                  <td>${g.subject || "-"}</td>
+                  <td>${g.academicYear || "-"}</td>
+                  <td>${g.semester ?? "-"}</td>
+                  <td>${g.period || "-"}</td>
+                  <td>${g.score ?? "-"}</td>
+                  <td>${gradeLetter(g.score)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    async function renderClassHonor() {
+      panelTitle.textContent = "Class Honor Roll";
+      filtersBox.style.display = "flex";
+      const search = new URLSearchParams();
+      if (filterYear.value) search.set("academicYear", filterYear.value);
+      if (filterSemester.value) search.set("semester", filterSemester.value);
+      if (filterPeriod.value) search.set("period", filterPeriod.value);
+      panelBody.innerHTML = "<p class='p-muted'>Loading class honor roll...</p>";
+      const data = await apiFetch(`/honor/class?${search.toString()}`);
+      state.classHonorMeta = data.metadata;
+      if (data.metadata) {
+        filterYear.value = data.metadata.academicYear || "";
+        filterSemester.value = data.metadata.semester ?? "";
+        filterPeriod.value = data.metadata.period || "";
+        document.getElementById("summaryPeriod").textContent = `${data.metadata.academicYear} / S${data.metadata.semester} / P${data.metadata.period}`;
+      }
+      if (!data.students.length) {
+        panelBody.innerHTML = "<p class='p-muted'>No honor roll records for the selected period and semester.</p>";
+        return;
+      }
+      panelBody.innerHTML = `
+        <p class="p-muted">Class: ${data.metadata.grade} ${data.metadata.section} | Year: ${data.metadata.academicYear} | Semester: ${data.metadata.semester} | Period: ${data.metadata.period}</p>
+        <div class="p-table-wrap">
+          <table class="p-table">
+            <thead><tr><th>Rank</th><th>Student</th><th>Student ID</th><th>Average</th><th>Subjects</th></tr></thead>
+            <tbody>
+              ${data.students.map((s) => `
+                <tr>
+                  <td>${s.rank}</td>
+                  <td>${s.name}</td>
+                  <td>${s.studentId}</td>
+                  <td>${s.averageScore}</td>
+                  <td>${s.subjectCount}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    async function renderSchoolHonor() {
+      panelTitle.textContent = "School Honor List";
+      filtersBox.style.display = "flex";
+      const search = new URLSearchParams();
+      if (filterYear.value) search.set("academicYear", filterYear.value);
+      if (filterSemester.value) search.set("semester", filterSemester.value);
+      if (filterPeriod.value) search.set("period", filterPeriod.value);
+      panelBody.innerHTML = "<p class='p-muted'>Loading school honor list...</p>";
+      const data = await apiFetch(`/honor/school?${search.toString()}`);
+      state.schoolHonorMeta = data.metadata;
+      if (data.metadata) {
+        filterYear.value = data.metadata.academicYear || "";
+        filterSemester.value = data.metadata.semester ?? "";
+        filterPeriod.value = data.metadata.period || "";
+        document.getElementById("summaryPeriod").textContent = `${data.metadata.academicYear} / S${data.metadata.semester} / P${data.metadata.period}`;
+      }
+      if (!data.students.length) {
+        panelBody.innerHTML = "<p class='p-muted'>No school-wide honor records for selected period.</p>";
+        return;
+      }
+      panelBody.innerHTML = `
+        <p class="p-muted">Year: ${data.metadata.academicYear} | Semester: ${data.metadata.semester} | Period: ${data.metadata.period}</p>
+        <div class="p-table-wrap">
+          <table class="p-table">
+            <thead><tr><th>Rank</th><th>Student</th><th>ID</th><th>Class</th><th>Average</th><th>Subjects</th></tr></thead>
+            <tbody>
+              ${data.students.map((s) => `
+                <tr>
+                  <td>${s.rank}</td>
+                  <td>${s.name}</td>
+                  <td>${s.studentId}</td>
+                  <td>${s.classLabel || "-"}</td>
+                  <td>${s.averageScore}</td>
+                  <td>${s.subjectCount}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    function renderFinance() {
+      panelTitle.textContent = "Finance";
+      filtersBox.style.display = "none";
+      const year = state.profile?.class?.academicYear || "2025/2026";
+      panelBody.innerHTML = `
+        <div class="finance-notice">
+          <span class="status-pill">Preview</span>
+          &nbsp; Fee balances will appear here once the school activates finance records. Layout below shows what students will see.
+        </div>
+        <div class="finance-grid">
+          <article class="finance-card">
+            <div class="label">Total Billed</div>
+            <div class="amount">—</div>
+            <p class="p-muted" style="margin-top:6px;font-size:0.82rem;">${year}</p>
+          </article>
+          <article class="finance-card">
+            <div class="label">Amount Paid</div>
+            <div class="amount">—</div>
+            <p class="p-muted" style="margin-top:6px;font-size:0.82rem;">All payments</p>
+          </article>
+          <article class="finance-card highlight">
+            <div class="label">Balance Due</div>
+            <div class="amount">—</div>
+            <p class="p-muted" style="margin-top:6px;font-size:0.82rem;">Outstanding</p>
+          </article>
+        </div>
+        <h4 style="margin:0 0 10px;font-size:0.95rem;">Fee Breakdown</h4>
+        <div class="p-table-wrap">
+          <table class="p-table">
+            <thead>
+              <tr><th>Description</th><th>Term</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Tuition</td><td>${year}</td><td>—</td><td>—</td><td>—</td><td><span class="status-pill">Pending</span></td></tr>
+              <tr><td>Registration</td><td>${year}</td><td>—</td><td>—</td><td>—</td><td><span class="status-pill">Pending</span></td></tr>
+              <tr><td>Other Fees</td><td>${year}</td><td>—</td><td>—</td><td>—</td><td><span class="status-pill">Pending</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4 style="margin:18px 0 10px;font-size:0.95rem;">Payment History</h4>
+        <p class="p-muted">No payment records to display yet.</p>`;
+    }
+
+    async function renderSchedule() {
+      panelTitle.textContent = "Class Schedule";
+      filtersBox.style.display = "none";
+      panelBody.innerHTML = "<p class='p-muted'>Loading class schedule...</p>";
+      const data = await apiFetch("/student/schedule");
+      if (!data.schedule) {
+        panelBody.innerHTML = "<p class='p-muted'>No class schedule uploaded for your class yet.</p>";
+        return;
+      }
+      const scheduleUrl = `${FILE_BASE}${data.schedule.url}`;
+      const uploadedLabel = data.schedule.uploadedAt
+        ? new Date(data.schedule.uploadedAt).toLocaleString()
+        : "-";
+      panelBody.innerHTML = `
+        <div class="card" style="margin-bottom:var(--p-space-4);">
+          <div class="label">Class</div>
+          <div class="value">${data.schedule.classLabel}</div>
+          <p class="p-muted" style="margin-top:6px;">Academic Year: ${data.schedule.academicYear || "-"}</p>
+          <p class="p-muted">Document: ${data.schedule.fileName || "-"}</p>
+          <p class="p-muted">Last updated: ${uploadedLabel}</p>
+          <a href="${scheduleUrl}" target="_blank" rel="noopener" class="p-btn p-btn--ghost p-btn--sm" style="display:inline-flex;margin-top:10px;text-decoration:none;">Open in New Tab</a>
+        </div>
+        <iframe
+          src="${scheduleUrl}"
+          title="${data.schedule.title || "Class Schedule"}"
+          style="width:100%;min-height:72vh;border:1px solid var(--p-border);border-radius:var(--p-radius-md);background:#fff;"
+        ></iframe>`;
+    }
+
+    async function switchView(view) {
+      state.currentView = view;
+      document.querySelectorAll(".p-nav__btn").forEach((btn) => {
+        btn.classList.toggle("is-active", btn.dataset.view === view);
+      });
+      try {
+        if (view === "overview") return renderOverview();
+        if (view === "profile") return renderProfile();
+        if (view === "grades") return await renderGrades();
+        if (view === "schedule") return await renderSchedule();
+        if (view === "finance") return renderFinance();
+        if (view === "classHonor") return await renderClassHonor();
+        if (view === "schoolHonor") return await renderSchoolHonor();
+      } catch (error) {
+        panelBody.innerHTML = `<p class="p-muted">${error.message}</p>`;
+      }
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("esemiPortalToken");
+      localStorage.removeItem("esemiStudentId");
+      localStorage.removeItem("esemiMustChangePassword");
+      window.location.href = "login.html";
+    });
+
+    menu.addEventListener("click", (event) => {
+      const btn = event.target.closest(".p-nav__btn");
+      if (!btn) return;
+      switchView(btn.dataset.view);
+    });
+    filterYear.addEventListener("change", () => {
+      filterSemester.value = "";
+      filterPeriod.value = "";
+      refreshTermSelectors();
+      switchView(state.currentView);
+    });
+    filterSemester.addEventListener("change", () => {
+      filterPeriod.value = "";
+      refreshTermSelectors();
+      switchView(state.currentView);
+    });
+    filterPeriod.addEventListener("change", () => switchView(state.currentView));
+
+    const passwordModal = document.getElementById("passwordModal");
+    const editProfileModal = document.getElementById("editProfileModal");
+    const mustChange = localStorage.getItem("esemiMustChangePassword") === "true";
+
+    async function updatePassword(keepCurrent) {
+      const feedback = document.getElementById("passwordFeedback");
+      try {
+        if (!keepCurrent) {
+          const currentPassword = document.getElementById("currentPassword").value;
+          const newPassword = document.getElementById("newPassword").value;
+          const confirmPassword = document.getElementById("confirmPassword").value;
+          if (!newPassword || newPassword.length < 6) throw new Error("New password must be at least 6 characters.");
+          if (newPassword !== confirmPassword) throw new Error("New password and confirmation do not match.");
+        }
+        feedback.textContent = "Updating...";
+        const response = await fetch(`${API_BASE}/auth/change-password`, {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({
+            keepCurrent,
+            currentPassword: document.getElementById("currentPassword").value,
+            newPassword: document.getElementById("newPassword").value,
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not update password.");
+        localStorage.setItem("esemiMustChangePassword", "false");
+        feedback.textContent = data.message || "Password updated successfully.";
+        feedback.style.color = "#166534";
+        setTimeout(() => {
+          passwordModal.classList.remove("is-open");
+        }, 900);
+      } catch (error) {
+        feedback.textContent = error.message;
+        feedback.style.color = "#991b1b";
+      }
+    }
+    document.getElementById("changePasswordBtn").addEventListener("click", () => updatePassword(false));
+    document.getElementById("keepPasswordBtn").addEventListener("click", () => updatePassword(true));
+
+    function openEditProfile(options = {}) {
+      const p = state.profile || {};
+      document.getElementById("editNationality").value = p.nationality || "";
+      document.getElementById("editAddress").value = p.address || "";
+      document.getElementById("editFatherName").value = p.fatherName || "";
+      document.getElementById("editFatherContact").value = p.fatherContact || "";
+      document.getElementById("editMotherName").value = p.motherName || "";
+      document.getElementById("editMotherContact").value = p.motherContact || "";
+      document.getElementById("editEmergencyName").value = p.emergencyContactName || "";
+      document.getElementById("editEmergencyNo").value = p.emergencyContactNo || "";
+      document.getElementById("editHomePhone").value = p.homePhone || "";
+      if (!options.keepPhoto) {
+        clearPendingPhoto();
+      } else if (pendingPhotoFile) {
+        updatePhotoPreview(pendingPhotoFile);
+      }
+      document.getElementById("editProfileFeedback").textContent = "";
+      editProfileModal.classList.add("is-open");
+      if (options.focusPhoto) {
+        document.querySelector(".p-photo-picker")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+
+    async function saveProfileChanges() {
+      const feedback = document.getElementById("editProfileFeedback");
+      const saveBtn = document.getElementById("saveProfileBtn");
+      try {
+        feedback.textContent = "Saving...";
+        feedback.style.color = "";
+        saveBtn.disabled = true;
+        const file = pendingPhotoFile;
+        let photoBase64 = undefined;
+        if (file) {
+          if (file.size > 4 * 1024 * 1024) {
+            throw new Error("Photo is too large. Please choose an image under 4 MB.");
+          }
+          photoBase64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || ""));
+            reader.onerror = () => reject(new Error("Could not read image file."));
+            reader.readAsDataURL(file);
+          });
+        }
+        const payload = {
+          nationality: document.getElementById("editNationality").value.trim(),
+          address: document.getElementById("editAddress").value.trim(),
+          fatherName: document.getElementById("editFatherName").value.trim(),
+          fatherContact: document.getElementById("editFatherContact").value.trim(),
+          motherName: document.getElementById("editMotherName").value.trim(),
+          motherContact: document.getElementById("editMotherContact").value.trim(),
+          emergencyContactName: document.getElementById("editEmergencyName").value.trim(),
+          emergencyContactNo: document.getElementById("editEmergencyNo").value.trim(),
+          homePhone: document.getElementById("editHomePhone").value.trim(),
+        };
+        if (photoBase64) payload.photoBase64 = photoBase64;
+
+        const data = await apiFetch("/student/profile", {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+        if (data.profile) {
+          applyProfile(data.profile);
+        } else {
+          await loadProfile();
+        }
+        clearPendingPhoto();
+        editProfileModal.classList.remove("is-open");
+        refreshCurrentView();
+      } catch (error) {
+        feedback.textContent = error.message;
+        feedback.style.color = "var(--p-accent)";
+      } finally {
+        saveBtn.disabled = false;
+      }
+    }
+
+    document.getElementById("saveProfileBtn").addEventListener("click", saveProfileChanges);
+    document.getElementById("cancelProfileBtn").addEventListener("click", () => {
+      clearPendingPhoto();
+      editProfileModal.classList.remove("is-open");
+    });
+    bindPhotoInputs();
+
+    (async function init() {
+      try {
+        const loaded = await loadProfile();
+        if (!loaded) return;
+        await loadTermOptions();
+        renderOverview();
+        if (mustChange) {
+          passwordModal.classList.add("is-open");
+        }
+      } catch (error) {
+        panelBody.innerHTML = `<p class="p-muted">${error.message}</p>`;
+      }
+    })();
+  </script>
 </body>
 </html>

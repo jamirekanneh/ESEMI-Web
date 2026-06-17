@@ -384,17 +384,17 @@
   <!-- Small clickable link section -->
   <div class="main-container">
     <div class="reveal shadow-sm" style="background-color: var(--card-bg); padding: 15px; border-left: 5px solid var(--brand-red); margin: 20px 0; font-family: inherit; font-size: 16px; border-radius: 4px;">
-      Dear students, <a href="https://docs.google.com/document/d/19gAEOS5LcIgrrWxZaJOtL_WwZk3LeMWj/edit?usp=sharing&ouid=108087264754469218145&rtpof=true&sd=true" target="_blank" style="color: var(--brand-red); font-weight: 600;">
+      Dear students, <a id="brochureLink" href="#" target="_blank" style="color: var(--brand-red); font-weight: 600;">
       click here
       </a> for 
-      <span style="text-decoration: underline;"> Student Brochure 2024/2025</span>.
+      <span id="brochureText" style="text-decoration: underline;"> Student Brochure (awaiting upload)</span>.
     </div>
 
     <div class="reveal shadow-sm" style="background-color: var(--card-bg); padding: 15px; border-left: 5px solid var(--brand-red); margin: 20px 0; font-family: inherit; font-size: 16px; border-radius: 4px;">
-      Dear students, <a href="https://docs.google.com/document/d/1coA3fvvKkhbzawPFBG0tQPXlouznZcje/view" target="_blank" style="color: var(--brand-red); font-weight: 600;">
+      Dear students, <a id="handbookLink" href="#" target="_blank" style="color: var(--brand-red); font-weight: 600;">
       click here
       </a> for 
-      <span style="text-decoration: underline;"> Student Hand Book 2024/2025</span>.
+      <span id="handbookText" style="text-decoration: underline;"> Student Handbook (awaiting upload)</span>.
     </div>
   </div>
 
@@ -447,5 +447,41 @@
     </div>
   </footer>
   <script src="shared.js"></script>
+  <script>
+    (async function loadPublicDocs() {
+      const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+      const apiBase = isLocal ? "http://localhost:4000/api" : "/api";
+      const baseHost = isLocal ? "http://localhost:4000" : "";
+      try {
+        const response = await fetch(`${apiBase}/public-docs`);
+        const docs = await response.json();
+        if (!response.ok) return;
+
+        const brochureLink = document.getElementById("brochureLink");
+        const brochureText = document.getElementById("brochureText");
+        if (docs.brochure?.url) {
+          brochureLink.href = `${baseHost}${docs.brochure.url}`;
+          brochureText.textContent = docs.brochure.title || `Student Brochure ${docs.brochure.academicYear || ""}`.trim();
+        } else {
+          brochureLink.removeAttribute("href");
+          brochureLink.style.pointerEvents = "none";
+          brochureLink.style.opacity = "0.6";
+        }
+
+        const handbookLink = document.getElementById("handbookLink");
+        const handbookText = document.getElementById("handbookText");
+        if (docs.handbook?.url) {
+          handbookLink.href = `${baseHost}${docs.handbook.url}`;
+          handbookText.textContent = docs.handbook.title || `Student Handbook ${docs.handbook.academicYear || ""}`.trim();
+        } else {
+          handbookLink.removeAttribute("href");
+          handbookLink.style.pointerEvents = "none";
+          handbookLink.style.opacity = "0.6";
+        }
+      } catch (_error) {
+        // Keep graceful placeholders if API is unavailable.
+      }
+    })();
+  </script>
 </body>
 </html>

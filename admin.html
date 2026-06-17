@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Portal Admin | ESEMI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="portal-ui.css" />
+  <script src="portal-ui.js"></script>
+  <style>
+    .admin-view { display: none; }
+    .admin-view.is-active { display: block; animation: p-fade-up 0.3s var(--p-ease) both; }
+    .admin-block { margin-bottom: var(--p-space-6); }
+    .admin-block:last-child { margin-bottom: 0; }
+    .admin-block h4 {
+      margin: 0 0 var(--p-space-4);
+      font-size: 1.0625rem;
+      font-weight: 600;
+      color: var(--p-black);
+    }
+    .admin-status-bar {
+      padding: var(--p-space-4) var(--p-space-5);
+      border-radius: var(--p-radius-md);
+      background: var(--p-bg-subtle);
+      border: 1px solid var(--p-border);
+      font-size: 0.9375rem;
+      min-height: 2.75rem;
+    }
+    .p-main { max-width: none; width: 100%; }
+    .grades-layout {
+      display: flex;
+      flex-direction: column;
+      gap: var(--p-space-5);
+    }
+    .grades-toolbar {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: var(--p-space-5);
+    }
+    .grades-subnav {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+      gap: var(--p-space-2);
+      padding: var(--p-space-2);
+      border: 1px solid var(--p-border);
+      border-radius: var(--p-radius-md);
+      background: var(--p-bg-subtle);
+    }
+    .grades-subnav__btn {
+      border: none;
+      background: transparent;
+      color: var(--p-text-secondary);
+      text-align: center;
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--p-radius-sm);
+      font: inherit;
+      font-size: 0.9375rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s var(--p-ease), color 0.15s var(--p-ease);
+    }
+    .grades-subnav__btn:hover {
+      background: #f5f5f5;
+      color: var(--p-red-bright);
+    }
+    .grades-subnav__btn.is-active {
+      background: var(--p-red-bright);
+      color: var(--p-white);
+      font-weight: 600;
+    }
+    .grades-panel-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+    .grades-panel { display: none; }
+    .grades-panel.is-active {
+      display: block;
+      animation: p-fade-up 0.25s var(--p-ease) both;
+    }
+    .grades-results {
+      padding-top: var(--p-space-5);
+      border-top: 1px solid var(--p-border);
+    }
+    @media (max-width: 900px) {
+      .grades-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .grades-subnav {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body class="p-portal">
+  <div class="p-app p-animate-in">
+    <aside class="p-sidebar">
+      <div class="p-sidebar__brand">
+        <img src="assets/esemilogo.png" alt="ESEMI logo" />
+        <span>ESEMI Admin</span>
+      </div>
+      <nav class="p-nav" id="adminMenu">
+        <button class="p-nav__btn is-active" data-view="students" type="button">Students</button>
+        <button class="p-nav__btn" data-view="passwords" type="button">Passwords</button>
+        <button class="p-nav__btn" data-view="teachers" type="button">Teachers</button>
+        <button class="p-nav__btn" data-view="assignments" type="button">Assignments</button>
+        <button class="p-nav__btn" data-view="grades" type="button">Grades</button>
+        <button class="p-nav__btn" data-view="documents" type="button">Documents</button>
+        <button class="p-nav__btn" data-view="honor" type="button">Honor Roll</button>
+      </nav>
+    </aside>
+
+    <main class="p-main">
+      <header class="p-page-header">
+        <h2>Admin Portal</h2>
+        <div class="p-row">
+          <button class="p-btn p-btn--ghost p-btn--sm" type="button" id="openPasswordModalBtn">Change Password</button>
+          <button class="p-btn p-btn--ghost p-btn--sm" type="button" id="openRecoveryModalBtn">Recovery Emails</button>
+          <button class="p-btn p-btn--ghost p-btn--sm" type="button" id="adminLogoutBtn">Sign out</button>
+        </div>
+      </header>
+
+      <div class="admin-status-bar p-muted" id="status">Ready.</div>
+
+      <section class="p-panel">
+        <div class="p-panel__head">
+          <h3 id="panelTitle">Students</h3>
+        </div>
+        <div class="p-panel__body">
+          <!-- Students -->
+          <div id="view-students" class="admin-view is-active">
+            <div class="admin-block">
+              <p class="p-muted" style="margin:0 0 var(--p-space-4);">Search by exact <strong>Student ID</strong> (e.g. <code>3</code>, <code>21173</code>) or by <strong>name</strong> (first, last, or full name).</p>
+              <div class="p-row">
+                <input id="searchQuery" placeholder="Student ID or student name" style="flex:1;min-width:200px;" />
+                <button class="p-btn p-btn--accent p-btn--sm" id="searchBtn" type="button">Search</button>
+              </div>
+            </div>
+            <div class="p-table-wrap">
+              <table class="p-table">
+                <thead>
+                  <tr>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Class</th>
+                    <th>Year</th>
+                    <th>Portal</th>
+                    <th>Must Change Pwd</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="studentsBody">
+                  <tr><td colspan="7" class="p-muted">Search to load students.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Passwords -->
+          <div id="view-passwords" class="admin-view">
+            <p class="p-muted" style="margin:0 0 var(--p-space-5);">Set or reset passwords for students, teachers, and admin. All passwords are stored encrypted.</p>
+            <div class="admin-block">
+              <h4>Student Password</h4>
+              <div class="p-row">
+                <input id="setStudentId" placeholder="Student ID" />
+                <input id="setStudentPassword" type="password" placeholder="New student password" />
+                <button class="p-btn p-btn--accent p-btn--sm" id="setStudentPasswordBtn" type="button">Set Student Password</button>
+              </div>
+            </div>
+            <div class="admin-block">
+              <h4>Teacher Password</h4>
+              <div class="p-row">
+                <select id="setTeacherSelect"><option value="">Select teacher</option></select>
+                <input id="setTeacherPassword" type="password" placeholder="New teacher password" />
+                <button class="p-btn p-btn--accent p-btn--sm" id="setTeacherPasswordBtn" type="button">Set Teacher Password</button>
+              </div>
+            </div>
+            <div class="admin-block">
+              <h4>Admin Password</h4>
+              <div class="p-row">
+                <input id="setAdminPassword" type="password" placeholder="New admin password" />
+                <button class="p-btn p-btn--accent p-btn--sm" id="setAdminPasswordBtn" type="button">Set Admin Password</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Teachers -->
+          <div id="view-teachers" class="admin-view">
+            <div class="admin-block">
+              <h4>Teacher Accounts</h4>
+              <p class="p-muted" style="margin:0 0 var(--p-space-3);">All teachers sign in with login ID <code>teacher</code>.</p>
+              <div class="p-row">
+                <input id="teacherLoginId" value="teacher" readonly style="background:#f5f5f5;color:#666;width:100px;" title="Fixed login ID" />
+                <input id="teacherFullName" placeholder="Teacher full name" />
+                <input id="teacherPassword" type="password" placeholder="Initial password (new teacher)" />
+                <button class="p-btn p-btn--accent p-btn--sm" id="saveTeacherBtn" type="button">Add Teacher</button>
+                <button class="p-btn p-btn--ghost p-btn--sm" id="loadTeachersBtn" type="button">Refresh</button>
+              </div>
+              <div id="teachersList" class="p-doc-preview" style="margin-top:var(--p-space-3);">No teacher data loaded yet.</div>
+            </div>
+          </div>
+
+          <!-- Assignments -->
+          <div id="view-assignments" class="admin-view">
+            <p class="p-muted" style="margin:0 0 var(--p-space-5);">Assign teachers to classes and subjects. Edit or remove assignments from the table below.</p>
+            <div class="admin-block">
+              <h4 id="assignmentFormTitle">Add Assignment</h4>
+              <input type="hidden" id="assignmentEditId" value="" />
+              <div class="p-field-grid">
+                <div>
+                  <label class="p-label" for="assignTeacherSelect">Teacher</label>
+                  <select id="assignTeacherSelect"><option value="">Select teacher</option></select>
+                </div>
+                <div>
+                  <label class="p-label" for="assignGrade">Grade</label>
+                  <input id="assignGrade" placeholder="e.g. G-12" />
+                </div>
+                <div>
+                  <label class="p-label" for="assignSection">Section</label>
+                  <input id="assignSection" placeholder="e.g. A" />
+                </div>
+                <div>
+                  <label class="p-label" for="assignSubject">Subject</label>
+                  <input id="assignSubject" placeholder="e.g. Mathematics" />
+                </div>
+                <div>
+                  <label class="p-label" for="assignYear">Academic Year</label>
+                  <input id="assignYear" placeholder="e.g. 2025/2026 (optional)" />
+                </div>
+              </div>
+              <div class="p-row">
+                <button class="p-btn p-btn--accent" id="saveAssignmentBtn" type="button">Save Assignment</button>
+                <button class="p-btn p-btn--ghost" id="cancelAssignmentEditBtn" type="button" style="display:none;">Cancel Edit</button>
+                <button class="p-btn p-btn--ghost p-btn--sm" id="refreshAssignmentsBtn" type="button">Refresh List</button>
+              </div>
+            </div>
+            <div class="p-table-wrap">
+              <table class="p-table">
+                <thead>
+                  <tr>
+                    <th>Teacher</th>
+                    <th>Grade</th>
+                    <th>Section</th>
+                    <th>Subject</th>
+                    <th>Year</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="assignmentsBody">
+                  <tr><td colspan="7" class="p-muted">Loading assignments...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Grades -->
+          <div id="view-grades" class="admin-view">
+            <p class="p-muted" style="margin:0 0 var(--p-space-4);">Review teacher entries and publish grades to the student portal.</p>
+
+            <div class="grades-layout">
+              <div class="grades-toolbar">
+                <nav class="grades-subnav" id="gradesSubnav" aria-label="Grade load mode">
+                  <button class="grades-subnav__btn is-active" data-grades-tab="class" type="button">Class / Group</button>
+                  <button class="grades-subnav__btn" data-grades-tab="student" type="button">Individual Student</button>
+                </nav>
+
+                <div class="grades-panel-wrap">
+                  <div id="grades-panel-class" class="grades-panel is-active">
+                    <h4 style="margin:0 0 var(--p-space-4);font-size:1.0625rem;font-weight:600;">Load by class</h4>
+                    <p class="p-muted" style="margin:0 0 var(--p-space-4);">Select class, subject, and term from the dropdowns, then load pending grades for the whole group.</p>
+                    <div class="p-field-grid" style="margin-bottom:var(--p-space-4);">
+                      <div>
+                        <label class="p-label" for="reviewGrade">Grade</label>
+                        <select id="reviewGrade"><option value="">Select grade</option></select>
+                      </div>
+                      <div>
+                        <label class="p-label" for="reviewSection">Section</label>
+                        <select id="reviewSection"><option value="">Select section</option></select>
+                      </div>
+                      <div>
+                        <label class="p-label" for="reviewSubject">Subject</label>
+                        <select id="reviewSubject"><option value="">Select subject</option></select>
+                      </div>
+                      <div>
+                        <label class="p-label" for="reviewYear">Academic Year</label>
+                        <select id="reviewYear"><option value="">Select year</option></select>
+                      </div>
+                      <div>
+                        <label class="p-label" for="reviewSemester">Semester</label>
+                        <select id="reviewSemester"><option value="">Select semester</option></select>
+                      </div>
+                      <div>
+                        <label class="p-label" for="reviewPeriod">Period</label>
+                        <select id="reviewPeriod"><option value="">Select period</option></select>
+                      </div>
+                    </div>
+                    <button class="p-btn p-btn--accent p-btn--sm" id="loadPendingGradesBtn" type="button">Load Pending Grades</button>
+                  </div>
+
+                  <div id="grades-panel-student" class="grades-panel">
+                    <h4 style="margin:0 0 var(--p-space-4);font-size:1.0625rem;font-weight:600;">Load student grade sheet</h4>
+                    <p class="p-muted" style="margin:0 0 var(--p-space-4);">Enter a Student ID and term to load all subjects for one student for edit and publishing.</p>
+                    <div class="p-field-grid" style="margin-bottom:var(--p-space-4);">
+                      <div>
+                        <label class="p-label" for="reviewStudentId">Student ID</label>
+                        <input id="reviewStudentId" placeholder="e.g. 3" inputmode="numeric" />
+                      </div>
+                      <div>
+                        <label class="p-label" for="reviewStudentYear">Academic Year</label>
+                        <select id="reviewStudentYear"><option value="">Select year</option></select>
+                      </div>
+                      <div>
+                        <label class="p-label" for="reviewStudentSemester">Semester</label>
+                        <select id="reviewStudentSemester"><option value="">Select semester</option></select>
+                      </div>
+                      <div>
+                        <label class="p-label" for="reviewStudentPeriod">Period</label>
+                        <select id="reviewStudentPeriod"><option value="">Select period</option></select>
+                      </div>
+                    </div>
+                    <button class="p-btn p-btn--accent p-btn--sm" id="loadStudentSheetBtn" type="button">Load Student Sheet</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grades-results">
+                  <div class="p-table-wrap">
+                    <table class="p-table">
+                      <thead>
+                        <tr>
+                          <th><input type="checkbox" id="selectAllPendingGrades" /></th>
+                          <th>Student</th><th>Class</th><th>Subject</th><th>Term</th><th>Status</th>
+                          <th>Quiz</th><th>Classwork</th><th>Exam</th><th>Total</th><th>Entered By</th><th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody id="pendingGradesBody">
+                        <tr><td colspan="12" class="p-muted">Select a tab above and load grades to review.</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="p-row" style="margin-top:var(--p-space-4);">
+                    <button class="p-btn p-btn--accent p-btn--sm" id="publishSelectedGradesBtn" type="button">Publish Selected</button>
+                    <button class="p-btn p-btn--accent p-btn--sm" id="publishBatchGradesBtn" type="button">Publish Whole Class</button>
+                  </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Documents -->
+          <div id="view-documents" class="admin-view">
+            <div class="admin-block">
+              <h4>Class Schedule Upload Status</h4>
+              <p class="p-muted" style="margin:0 0 var(--p-space-4);">See which classes have a schedule PDF uploaded for the selected academic year. Only PDF files are accepted.</p>
+              <div class="p-row" style="margin-bottom:var(--p-space-4);">
+                <div style="flex:1;min-width:200px;">
+                  <label class="p-label" for="scheduleListYear">Academic Year</label>
+                  <select id="scheduleListYear"><option value="">Select year</option></select>
+                </div>
+                <button class="p-btn p-btn--ghost p-btn--sm" id="refreshScheduleListBtn" type="button" style="align-self:flex-end;">Refresh List</button>
+              </div>
+              <div class="p-table-wrap">
+                <table class="p-table">
+                  <thead>
+                    <tr>
+                      <th>Grade</th>
+                      <th>Section</th>
+                      <th>Status</th>
+                      <th>File</th>
+                      <th>Last Upload</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="scheduleListBody">
+                    <tr><td colspan="6" class="p-muted">Select an academic year to view upload status.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <input id="scheduleReuploadFile" type="file" accept="application/pdf,.pdf" style="display:none;" />
+            </div>
+
+            <div class="admin-block">
+              <h4>Upload Public Documents (PDF)</h4>
+              <div class="p-row">
+                <select id="publicDocType">
+                  <option value="brochure">Brochure</option>
+                  <option value="handbook">Handbook</option>
+                </select>
+                <input id="publicDocYear" placeholder="Academic Year (optional)" />
+                <input id="publicDocTitle" placeholder="Title (optional)" />
+              </div>
+              <div class="p-row" style="margin-top:var(--p-space-3);">
+                <input id="publicDocFile" type="file" accept="application/pdf" />
+                <button class="p-btn p-btn--accent p-btn--sm" id="uploadPublicDocBtn" type="button">Upload PDF</button>
+              </div>
+              <div class="p-doc-preview" id="publicDocPreview" style="margin-top:var(--p-space-3);">Loading current brochure/handbook...</div>
+            </div>
+          </div>
+
+          <!-- Honor Roll -->
+          <div id="view-honor" class="admin-view">
+            <p class="p-muted" style="margin:0 0 var(--p-space-4);">Load honor lists, edit for print/PDF output. Edits are not saved to the database.</p>
+            <div class="p-field-grid" style="margin-bottom:var(--p-space-4);">
+              <div>
+                <label class="p-label" for="reportType">Report Type</label>
+                <select id="reportType">
+                  <option value="class">Class Honor Roll</option>
+                  <option value="school">School Honor Roll</option>
+                </select>
+              </div>
+              <div>
+                <label class="p-label" for="reportYear">Academic Year</label>
+                <select id="reportYear"><option value="">Select year</option></select>
+              </div>
+              <div>
+                <label class="p-label" for="reportSemester">Semester</label>
+                <select id="reportSemester"><option value="">Select semester</option></select>
+              </div>
+              <div>
+                <label class="p-label" for="reportPeriod">Period</label>
+                <select id="reportPeriod"><option value="">Select period</option></select>
+              </div>
+              <div id="reportGradeWrap">
+                <label class="p-label" for="reportGrade">Grade</label>
+                <select id="reportGrade"><option value="">Select grade</option></select>
+              </div>
+              <div id="reportSectionWrap">
+                <label class="p-label" for="reportSection">Section</label>
+                <select id="reportSection"><option value="">Select section</option></select>
+              </div>
+            </div>
+            <div class="p-row" style="margin-bottom:var(--p-space-3);">
+              <button class="p-btn p-btn--accent p-btn--sm" id="loadReportBtn" type="button">Load Report</button>
+            </div>
+            <p class="p-status--bad" style="margin:0 0 var(--p-space-3);font-size:0.8125rem;">Print/PDF only — not saved to database.</p>
+            <div id="honorColumnPanel" class="admin-block" style="display:none;">
+              <h4>Columns for display &amp; print</h4>
+              <p class="p-muted" style="margin:0 0 var(--p-space-3);">Remove columns you do not want on the printed honor roll. At least one column must stay visible.</p>
+              <div id="columnControls" class="p-row" style="gap:12px;flex-wrap:wrap;margin-bottom:var(--p-space-3);"></div>
+              <button class="p-btn p-btn--ghost p-btn--sm" id="restoreColumnsBtn" type="button">Restore all columns</button>
+            </div>
+            <div class="p-row" style="margin-bottom:var(--p-space-4);">
+              <button class="p-btn p-btn--accent p-btn--sm" id="printReportBtn" type="button">Print / Download PDF</button>
+            </div>
+            <div class="p-table-wrap">
+              <table class="p-table" id="reportTable">
+                <thead id="reportHead"></thead>
+                <tbody id="reportBody"><tr><td class="p-muted">No report loaded yet.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div class="p-modal" id="passwordModal">
+    <div class="p-modal__box">
+      <h3>Change Admin Password</h3>
+      <p class="p-muted">Update your own admin sign-in password.</p>
+      <div style="margin:var(--p-space-4) 0 var(--p-space-3);">
+        <label class="p-label" for="adminCurrentPassword">Current password</label>
+        <input class="p-input" id="adminCurrentPassword" type="password" />
+      </div>
+      <div style="margin-bottom:var(--p-space-3);">
+        <label class="p-label" for="adminNewPassword">New password</label>
+        <input class="p-input" id="adminNewPassword" type="password" placeholder="Min 6 characters" />
+      </div>
+      <div style="margin-bottom:var(--p-space-4);">
+        <label class="p-label" for="adminConfirmPassword">Confirm new password</label>
+        <input class="p-input" id="adminConfirmPassword" type="password" />
+      </div>
+      <div class="p-row">
+        <button class="p-btn p-btn--accent" id="changeAdminPasswordBtn" type="button">Update Password</button>
+        <button class="p-btn p-btn--ghost" id="closePasswordModalBtn" type="button">Cancel</button>
+      </div>
+      <p class="p-muted" id="passwordModalFeedback" style="margin-top:var(--p-space-3);"></p>
+    </div>
+  </div>
+
+  <!-- Recovery Emails Modal -->
+  <div class="p-modal" id="recoveryModal">
+    <div class="p-modal__box p-modal__box--wide">
+      <h3>Admin Google Recovery Emails</h3>
+      <p class="p-muted">Only these Google accounts can reset the admin password from the login page. <code>esemi2011@gmail.com</code> is included by default.</p>
+      <div class="p-row" style="margin:var(--p-space-4) 0 var(--p-space-3);">
+        <input id="recoveryEmailInput" type="email" placeholder="Add recovery email" style="flex:1;" />
+        <button class="p-btn p-btn--accent p-btn--sm" id="addRecoveryEmailBtn" type="button">Add Email</button>
+        <button class="p-btn p-btn--ghost p-btn--sm" id="loadRecoveryEmailsBtn" type="button">Refresh</button>
+      </div>
+      <div id="recoveryEmailsList" class="p-doc-preview">No recovery emails loaded yet.</div>
+      <div class="p-row" style="margin-top:var(--p-space-4);">
+        <button class="p-btn p-btn--ghost" id="closeRecoveryModalBtn" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    const API_BASE = isLocal ? "http://localhost:4000/api" : "/api";
+    const statusEl = document.getElementById("status");
+    const bodyEl = document.getElementById("studentsBody");
+    const panelTitle = document.getElementById("panelTitle");
+    const viewTitles = {
+      students: "Students",
+      passwords: "Password Management",
+      teachers: "Teachers",
+      assignments: "Class Assignments",
+      grades: "Review & Publish Grades",
+      documents: "Documents & Schedules",
+      honor: "Honor Roll Reports",
+    };
+    let reportRows = [];
+    let reportColumns = [];
+    let reportMetadata = {};
+    let pendingGrades = [];
+    let teacherDirectory = [];
+    let assignmentRows = [];
+    let assignmentEditId = null;
+    let gradeFilterOptions = null;
+    let honorFilterOptions = null;
+    let gradesLoadMode = "class";
+    let scheduleReuploadTarget = null;
+    let scheduleListRows = [];
+
+    function isPdfFile(file) {
+      if (!file) return false;
+      const name = String(file.name || "").toLowerCase();
+      const type = String(file.type || "").toLowerCase();
+      return name.endsWith(".pdf") || type === "application/pdf" || type === "application/x-pdf";
+    }
+
+    function syncScheduleListYearSelect(years, selected) {
+      fillSelect(document.getElementById("scheduleListYear"), years, "Select year", selected || "");
+    }
+
+    async function loadScheduleYears() {
+      const response = await fetch(`${API_BASE}/admin/class-schedules/years`, { headers: adminHeaders() });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Could not load academic years.");
+      const years = data.academicYears || [];
+      syncScheduleListYearSelect(years, document.getElementById("scheduleListYear").value || years[0] || "");
+      return years;
+    }
+
+    function renderScheduleList() {
+      const body = document.getElementById("scheduleListBody");
+      if (!scheduleListRows.length) {
+        body.innerHTML = "<tr><td colspan='6' class='p-muted'>No classes found for this academic year.</td></tr>";
+        return;
+      }
+      body.innerHTML = scheduleListRows.map((row) => {
+        const uploadedAt = row.uploadedAt ? new Date(row.uploadedAt).toLocaleString() : "-";
+        const status = row.uploaded
+          ? "<span style='color:var(--p-green-700,#15803d);font-weight:600;'>Uploaded</span>"
+          : "<span style='color:var(--p-red-bright);font-weight:600;'>Not uploaded</span>";
+        const fileCell = row.uploaded
+          ? `<a href="${isLocal ? "http://localhost:4000" : ""}${row.url}" target="_blank" rel="noopener">${row.fileName || "View PDF"}</a>`
+          : "<span class='p-muted'>—</span>";
+        const actionLabel = row.uploaded ? "Re-upload" : "Upload";
+        const gradeArg = JSON.stringify(row.grade);
+        const sectionArg = JSON.stringify(row.section);
+        const yearArg = JSON.stringify(row.academicYear);
+        return `
+          <tr>
+            <td>${row.grade}</td>
+            <td>${row.section}</td>
+            <td>${status}</td>
+            <td>${fileCell}</td>
+            <td>${uploadedAt}</td>
+            <td><button class="p-btn p-btn--ghost p-btn--sm" type="button" onclick="startScheduleUpload(${gradeArg}, ${sectionArg}, ${yearArg})">${actionLabel}</button></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function loadScheduleList() {
+      try {
+        const academicYear = document.getElementById("scheduleListYear").value;
+        if (!academicYear) {
+          scheduleListRows = [];
+          document.getElementById("scheduleListBody").innerHTML = "<tr><td colspan='6' class='p-muted'>Select an academic year to view upload status.</td></tr>";
+          return;
+        }
+        setStatus("Loading class schedule status...", false);
+        const response = await fetch(`${API_BASE}/admin/class-schedules?academicYear=${encodeURIComponent(academicYear)}`, { headers: adminHeaders() });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not load schedule list.");
+        scheduleListRows = data.classes || [];
+        renderScheduleList();
+        setStatus(`${data.uploadedCount || 0} uploaded, ${data.missingCount || 0} not uploaded for ${academicYear}.`, false);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    window.startScheduleUpload = function startScheduleUpload(grade, section, academicYear) {
+      scheduleReuploadTarget = { grade, section, academicYear };
+      const input = document.getElementById("scheduleReuploadFile");
+      input.value = "";
+      input.click();
+    };
+
+    async function uploadSchedulePdf(file, meta, title = "") {
+      if (!isPdfFile(file)) {
+        PUI.error("Only PDF files are allowed. Please select a .pdf file.");
+        return false;
+      }
+      if (!meta.grade || !meta.section || !meta.academicYear) {
+        PUI.error("Grade, section, and academic year are required.");
+        return false;
+      }
+      const form = new FormData();
+      form.append("grade", meta.grade);
+      form.append("section", meta.section);
+      form.append("academicYear", meta.academicYear);
+      form.append("title", title);
+      form.append("file", file);
+      const response = await fetch(`${API_BASE}/admin/upload/class-schedule`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${adminToken()}` },
+        body: form,
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Schedule upload failed.");
+      PUI.success(data.message || "Class schedule uploaded.");
+      return true;
+    }
+
+    function fillSelect(selectEl, values, placeholder, selected) {
+      const opts = [`<option value="">${placeholder}</option>`];
+      (values || []).forEach((value) => {
+        const v = String(value);
+        opts.push(`<option value="${v.replace(/"/g, "&quot;")}"${v === selected ? " selected" : ""}>${v}</option>`);
+      });
+      selectEl.innerHTML = opts.join("");
+    }
+
+    function syncTermSelects(prefix) {
+      const yearEl = document.getElementById(prefix === "student" ? "reviewStudentYear" : "reviewYear");
+      const semesterEl = document.getElementById(prefix === "student" ? "reviewStudentSemester" : "reviewSemester");
+      const periodEl = document.getElementById(prefix === "student" ? "reviewStudentPeriod" : "reviewPeriod");
+      if (!gradeFilterOptions) return;
+
+      const years = gradeFilterOptions.academicYears || [];
+      fillSelect(yearEl, years, "Select year", yearEl.value);
+      const year = yearEl.value;
+      const semesters = year ? (gradeFilterOptions.semestersByYear?.[year] || []) : [];
+      fillSelect(semesterEl, semesters, "Select semester", semesterEl.value);
+      const semester = semesterEl.value;
+      const periods = year && semester
+        ? (gradeFilterOptions.periodsByYearSemester?.[`${year}|${semester}`] || [])
+        : [];
+      fillSelect(periodEl, periods, "Select period", periodEl.value);
+    }
+
+    function syncClassSelects() {
+      if (!gradeFilterOptions) return;
+      const gradeEl = document.getElementById("reviewGrade");
+      const sectionEl = document.getElementById("reviewSection");
+      const subjectEl = document.getElementById("reviewSubject");
+
+      fillSelect(gradeEl, gradeFilterOptions.grades || [], "Select grade", gradeEl.value);
+      const grade = gradeEl.value;
+      const sections = grade ? (gradeFilterOptions.sectionsByGrade?.[grade] || []) : [];
+      fillSelect(sectionEl, sections, "Select section", sectionEl.value);
+      const section = sectionEl.value;
+      const subjects = grade && section
+        ? (gradeFilterOptions.subjectsByClass?.[`${grade}|${section}`] || [])
+        : [];
+      fillSelect(subjectEl, subjects, "Select subject", subjectEl.value);
+    }
+
+    async function loadGradeFilters() {
+      try {
+        const response = await fetch(`${API_BASE}/admin/grades/filters`, { headers: adminHeaders() });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not load grade filters.");
+        gradeFilterOptions = data;
+        syncClassSelects();
+        syncTermSelects("class");
+        syncTermSelects("student");
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    function switchGradesTab(tab) {
+      gradesLoadMode = tab === "student" ? "student" : "class";
+      document.querySelectorAll(".grades-subnav__btn").forEach((btn) => {
+        btn.classList.toggle("is-active", btn.dataset.gradesTab === tab);
+      });
+      document.getElementById("grades-panel-class").classList.toggle("is-active", tab === "class");
+      document.getElementById("grades-panel-student").classList.toggle("is-active", tab === "student");
+      const batchBtn = document.getElementById("publishBatchGradesBtn");
+      if (batchBtn) batchBtn.style.display = tab === "class" ? "" : "none";
+    }
+
+    function switchAdminView(view) {
+      document.querySelectorAll("#adminMenu .p-nav__btn").forEach((btn) => {
+        btn.classList.toggle("is-active", btn.dataset.view === view);
+      });
+      document.querySelectorAll(".admin-view").forEach((el) => {
+        el.classList.toggle("is-active", el.id === `view-${view}`);
+      });
+      panelTitle.textContent = viewTitles[view] || "Admin";
+      if (view === "grades") {
+        if (!gradeFilterOptions) loadGradeFilters();
+        switchGradesTab(gradesLoadMode === "student" ? "student" : "class");
+      }
+      if (view === "documents") {
+        loadDocumentsTab();
+      }
+      if (view === "honor") {
+        loadHonorTab();
+      }
+    }
+
+    function syncHonorTermSelects() {
+      if (!honorFilterOptions) return;
+      const yearEl = document.getElementById("reportYear");
+      const semesterEl = document.getElementById("reportSemester");
+      const periodEl = document.getElementById("reportPeriod");
+      const years = honorFilterOptions.academicYears || [];
+      fillSelect(yearEl, years, "Select year", yearEl.value);
+      const year = yearEl.value;
+      const semesters = year ? (honorFilterOptions.semestersByYear?.[year] || []) : [];
+      fillSelect(semesterEl, semesters, "Select semester", semesterEl.value);
+      const semester = semesterEl.value;
+
+      let periods = [];
+      const type = document.getElementById("reportType").value;
+      if (type === "class" && year && semester) {
+        const grade = document.getElementById("reportGrade").value;
+        const section = document.getElementById("reportSection").value;
+        if (grade && section) {
+          const classKey = `${grade}|${section}|${year}|${semester}`;
+          periods = honorFilterOptions.periodsByClassYearSemester?.[classKey] || [];
+        }
+      }
+      if (!periods.length && year && semester) {
+        periods = honorFilterOptions.periodsByYearSemester?.[`${year}|${semester}`] || [];
+      }
+      fillSelect(periodEl, periods, "Select period", periodEl.value);
+    }
+
+    function syncHonorClassSelects() {
+      if (!honorFilterOptions) return;
+      const gradeEl = document.getElementById("reportGrade");
+      const sectionEl = document.getElementById("reportSection");
+      fillSelect(gradeEl, honorFilterOptions.grades || [], "Select grade", gradeEl.value);
+      const grade = gradeEl.value;
+      const sections = grade ? (honorFilterOptions.sectionsByGrade?.[grade] || []) : [];
+      fillSelect(sectionEl, sections, "Select section", sectionEl.value);
+      syncHonorTermSelects();
+    }
+
+    function syncHonorClassVisibility() {
+      const isClass = document.getElementById("reportType").value === "class";
+      document.getElementById("reportGradeWrap").style.display = isClass ? "" : "none";
+      document.getElementById("reportSectionWrap").style.display = isClass ? "" : "none";
+      syncHonorTermSelects();
+    }
+
+    async function loadHonorFilters() {
+      const response = await fetch(`${API_BASE}/admin/honor/filters`, { headers: adminHeaders() });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Could not load honor roll filters.");
+      honorFilterOptions = data;
+    }
+
+    async function loadHonorTab() {
+      try {
+        if (!honorFilterOptions) await loadHonorFilters();
+        syncHonorTermSelects();
+        syncHonorClassSelects();
+        syncHonorClassVisibility();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    async function loadDocumentsTab() {
+      try {
+        const years = await loadScheduleYears();
+        if (!document.getElementById("scheduleListYear").value && years[0]) {
+          document.getElementById("scheduleListYear").value = years[0];
+        }
+        await loadScheduleList();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    document.getElementById("adminMenu").addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-view]");
+      if (!btn) return;
+      switchAdminView(btn.dataset.view);
+    });
+
+    const passwordModal = document.getElementById("passwordModal");
+    const recoveryModal = document.getElementById("recoveryModal");
+
+    document.getElementById("openPasswordModalBtn").addEventListener("click", () => {
+      document.getElementById("adminCurrentPassword").value = "";
+      document.getElementById("adminNewPassword").value = "";
+      document.getElementById("adminConfirmPassword").value = "";
+      document.getElementById("passwordModalFeedback").textContent = "";
+      passwordModal.classList.add("is-open");
+    });
+    document.getElementById("closePasswordModalBtn").addEventListener("click", () => {
+      passwordModal.classList.remove("is-open");
+    });
+    document.getElementById("openRecoveryModalBtn").addEventListener("click", () => {
+      loadRecoveryEmails();
+      recoveryModal.classList.add("is-open");
+    });
+    document.getElementById("closeRecoveryModalBtn").addEventListener("click", () => {
+      recoveryModal.classList.remove("is-open");
+    });
+
+    function renderTeacherSelect() {
+      const assignSelect = document.getElementById("assignTeacherSelect");
+      const setSelect = document.getElementById("setTeacherSelect");
+      const activeTeachers = teacherDirectory.filter((t) => t.isActive);
+      const options = `<option value="">Select teacher</option>` + activeTeachers.map((t) =>
+        `<option value="${t.username}">${t.fullName || t.username}</option>`
+      ).join("");
+      if (assignSelect) assignSelect.innerHTML = options;
+      if (setSelect) setSelect.innerHTML = options;
+    }
+
+    function renderTeachersList() {
+      const list = document.getElementById("teachersList");
+      if (!teacherDirectory.length) {
+        list.innerHTML = "No teachers found.";
+        return;
+      }
+      list.innerHTML = teacherDirectory.map((t) => `
+        <div class="p-row" style="justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div>
+            <strong>${t.fullName || "-"}</strong>
+            <span class="p-muted"> — login ID: teacher (${t.isActive ? "Active" : "Inactive"})</span>
+          </div>
+          <div class="p-row">
+            ${t.isActive
+              ? `<button class="p-btn p-btn--warn p-btn--sm" onclick="setTeacherStatus('${t.username}', false)">Deactivate</button>`
+              : `<button class="p-btn p-btn--ghost p-btn--sm" onclick="setTeacherStatus('${t.username}', true)">Activate</button>`}
+            <button class="p-btn p-btn--ghost p-btn--sm" onclick="resetTeacherPassword('${t.username}', '${(t.fullName || "").replace(/'/g, "\\'")}')">Reset Password</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function reviewFilters() {
+      return {
+        grade: document.getElementById("reviewGrade").value,
+        section: document.getElementById("reviewSection").value,
+        subject: document.getElementById("reviewSubject").value,
+        academicYear: document.getElementById("reviewYear").value,
+        semester: document.getElementById("reviewSemester").value,
+        period: document.getElementById("reviewPeriod").value,
+      };
+    }
+
+    function renderPendingGrades() {
+      const body = document.getElementById("pendingGradesBody");
+      if (!pendingGrades.length) {
+        body.innerHTML = "<tr><td colspan='12' class='p-muted'>No pending grades found for these filters.</td></tr>";
+        return;
+      }
+      body.innerHTML = pendingGrades.map((g) => `
+        <tr data-id="${String(g.id).replace(/"/g, "&quot;")}">
+          <td><input type="checkbox" class="pending-grade-check" data-student-id="${g.studentId}" /></td>
+          <td>${g.studentName || "-"} (${g.studentId})</td>
+          <td>${g.grade} ${g.section}</td>
+          <td>${g.subject}</td>
+          <td>${g.academicYear} / S${g.semester} / P${g.period}</td>
+          <td>${g.statusLabel || (g.isPublished ? "Published" : "Pending")}</td>
+          <td><input class="p-input p-input--narrow" data-field="quiz" value="${g.quizScore ?? ""}" ${g.source === "legacy" ? "disabled" : ""} /></td>
+          <td><input class="p-input p-input--narrow" data-field="classwork" value="${g.classworkScore ?? ""}" ${g.source === "legacy" ? "disabled" : ""} /></td>
+          <td><input class="p-input p-input--narrow" data-field="exam" value="${g.examScore ?? ""}" ${g.source === "legacy" ? "disabled" : ""} /></td>
+          <td><input class="p-input p-input--narrow" data-field="total" value="${g.totalMark ?? ""}" /></td>
+          <td>${g.enteredBy || "-"}</td>
+          <td><button class="p-btn p-btn--ghost p-btn--sm" onclick="savePendingGrade(this.closest('tr').dataset.id)">Save</button></td>
+        </tr>
+      `).join("");
+    }
+
+    async function loadPendingGrades() {
+      try {
+        switchGradesTab("class");
+        const filters = reviewFilters();
+        if (!filters.grade || !filters.section || !filters.subject || !filters.academicYear || !filters.semester || !filters.period) {
+          throw new Error("Select Grade, Section, Subject, Academic Year, Semester, and Period from the dropdowns.");
+        }
+        const params = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => { if (value) params.set(key, value); });
+        setStatus("Loading pending grades...", false);
+        const response = await fetch(`${API_BASE}/admin/grades/pending?${params.toString()}`, { headers: adminHeaders() });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not load pending grades.");
+        pendingGrades = data.grades || [];
+        renderPendingGrades();
+        setStatus(`Loaded ${pendingGrades.length} grade record(s) for ${filters.grade} ${filters.section} — ${filters.subject}.`, false);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    async function loadStudentGradeSheet() {
+      try {
+        switchGradesTab("student");
+        const studentId = document.getElementById("reviewStudentId").value.trim();
+        const academicYear = document.getElementById("reviewStudentYear").value;
+        const semester = document.getElementById("reviewStudentSemester").value;
+        const period = document.getElementById("reviewStudentPeriod").value;
+        if (!studentId || !/^\d+$/.test(studentId)) {
+          throw new Error("Enter a valid numeric Student ID.");
+        }
+        if (!academicYear || !semester || !period) {
+          throw new Error("Select Academic Year, Semester, and Period for the student sheet.");
+        }
+        setStatus("Loading student grade sheet...", false);
+        const params = new URLSearchParams({ studentId, academicYear, semester, period });
+        const response = await fetch(`${API_BASE}/admin/grades/student-sheet?${params.toString()}`, { headers: adminHeaders() });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not load student grade sheet.");
+        pendingGrades = data.grades || [];
+        renderPendingGrades();
+        const label = data.studentName ? `${data.studentName} (${studentId})` : `Student ${studentId}`;
+        if (!pendingGrades.length) {
+          setStatus(`No grade records found for ${label} in ${academicYear}, Semester ${semester}, Period ${period}.`, false);
+          return;
+        }
+        setStatus(`Loaded ${pendingGrades.length} subject(s) for ${label}.`, false);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    window.savePendingGrade = async function savePendingGrade(id) {
+      try {
+        const row = pendingGrades.find((g) => String(g.id) === String(id));
+        if (!row) return;
+        const tr = document.querySelector(`tr[data-id="${CSS.escape(String(id))}"]`);
+        const payload = {
+          id: row.id,
+          source: row.source,
+          studentId: row.studentId,
+          grade: row.grade,
+          section: row.section,
+          subject: row.subject,
+          academicYear: row.academicYear,
+          semester: row.semester,
+          period: row.period,
+          quizScore: tr.querySelector('[data-field="quiz"]').value.trim(),
+          classworkScore: tr.querySelector('[data-field="classwork"]').value.trim(),
+          examScore: tr.querySelector('[data-field="exam"]').value.trim(),
+          totalMark: tr.querySelector('[data-field="total"]').value.trim(),
+        };
+        const response = await fetch(`${API_BASE}/admin/grades/upsert`, {
+          method: "POST",
+          headers: adminHeaders(),
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not save grade.");
+        setStatus(data.message, false);
+        if (gradesLoadMode === "student") loadStudentGradeSheet();
+        else loadPendingGrades();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    };
+
+    async function publishGrades(mode) {
+      try {
+        if (gradesLoadMode === "student" && mode === "batch") {
+          throw new Error("Use class filters for Publish Whole Class, or select individual rows to publish from a student sheet.");
+        }
+
+        if (gradesLoadMode === "student" && mode === "selected") {
+          const selectedIds = Array.from(document.querySelectorAll(".pending-grade-check:checked"))
+            .map((el) => el.closest("tr")?.dataset.id)
+            .filter(Boolean);
+          if (!selectedIds.length) throw new Error("Select at least one subject row to publish.");
+          const rows = pendingGrades.filter((g) => selectedIds.includes(String(g.id)));
+          let total = 0;
+          let skipped = 0;
+          for (const row of rows) {
+            if (row.source === "legacy" || row.isPublished) {
+              skipped += 1;
+              continue;
+            }
+            const payload = {
+              grade: row.grade,
+              section: row.section,
+              subject: row.subject,
+              academicYear: row.academicYear,
+              semester: Number(row.semester),
+              period: row.period,
+              studentIds: [row.studentId],
+            };
+            const response = await fetch(`${API_BASE}/admin/grades/publish`, {
+              method: "POST",
+              headers: adminHeaders(),
+              body: JSON.stringify(payload),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || "Could not publish grades.");
+            total += data.affectedRows || 0;
+          }
+          setStatus(`Published ${total} grade record(s) for selected subjects${skipped ? ` (${skipped} already published or grade-sheet rows skipped)` : ""}.`, false);
+          loadStudentGradeSheet();
+          return;
+        }
+
+        const filters = reviewFilters();
+        if (!filters.grade || !filters.section || !filters.subject || !filters.academicYear || !filters.semester || !filters.period) {
+          throw new Error("Select Grade, Section, Subject, Academic Year, Semester, and Period before publishing.");
+        }
+        const payload = { ...filters, semester: Number(filters.semester) };
+        if (mode === "selected") {
+          const selected = Array.from(document.querySelectorAll(".pending-grade-check:checked"))
+            .map((el) => el.getAttribute("data-student-id"))
+            .filter(Boolean);
+          if (!selected.length) throw new Error("Select at least one student row to publish.");
+          payload.studentIds = selected;
+        }
+        const response = await fetch(`${API_BASE}/admin/grades/publish`, {
+          method: "POST",
+          headers: adminHeaders(),
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not publish grades.");
+        setStatus(`${data.message} (${data.affectedRows || 0} records)`, false);
+        loadPendingGrades();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    function adminToken() {
+      return localStorage.getItem("esemiAdminToken") || "";
+    }
+
+    function adminHeaders() {
+      return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${adminToken()}`,
+      };
+    }
+
+    function setStatus(text, isError) {
+      statusEl.textContent = text;
+      statusEl.className = isError ? "admin-status-bar p-status--bad" : "admin-status-bar p-status--ok";
+    }
+
+    async function loadRecoveryEmails() {
+      try {
+        const response = await fetch(`${API_BASE}/admin/recovery-emails`, { headers: adminHeaders() });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not load recovery emails.");
+        const list = document.getElementById("recoveryEmailsList");
+        list.innerHTML = data.emails?.length
+          ? data.emails.map((item) => `
+            <div class="p-row" style="justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span>${item.email}</span>
+              <button class="p-btn p-btn--warn p-btn--sm" onclick="removeRecoveryEmail('${item.email.replace(/'/g, "\\'")}')">Remove</button>
+            </div>
+          `).join("")
+          : "No recovery emails found.";
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    async function addRecoveryEmail() {
+      try {
+        const email = document.getElementById("recoveryEmailInput").value.trim();
+        const response = await fetch(`${API_BASE}/admin/recovery-emails`, {
+          method: "POST",
+          headers: adminHeaders(),
+          body: JSON.stringify({ email }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not add recovery email.");
+        document.getElementById("recoveryEmailInput").value = "";
+        setStatus(data.message, false);
+        loadRecoveryEmails();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    window.removeRecoveryEmail = async function removeRecoveryEmail(email) {
+      const ok = await PUI.confirm({
+        title: "Remove recovery email",
+        message: `Remove ${email} from the admin recovery list?`,
+        confirmLabel: "Remove",
+        danger: true,
+      });
+      if (!ok) return;
+      try {
+        const response = await fetch(`${API_BASE}/admin/recovery-emails`, {
+          method: "DELETE",
+          headers: adminHeaders(),
+          body: JSON.stringify({ email }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not remove recovery email.");
+        setStatus(data.message, false);
+        loadRecoveryEmails();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    };
+
+    async function loadTeachers() {
+      try {
+        const response = await fetch(`${API_BASE}/admin/teachers`, { headers: adminHeaders() });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not load teachers.");
+        teacherDirectory = data.teachers || [];
+        renderTeachersList();
+        renderTeacherSelect();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    async function saveTeacher() {
+      try {
+        const payload = {
+          fullName: document.getElementById("teacherFullName").value.trim(),
+          password: document.getElementById("teacherPassword").value,
+        };
+        if (!payload.fullName) throw new Error("Teacher full name is required.");
+        if (!payload.password) throw new Error("Initial password is required for a new teacher.");
+        const response = await fetch(`${API_BASE}/admin/teachers/upsert`, {
+          method: "POST",
+          headers: adminHeaders(),
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not save teacher.");
+        document.getElementById("teacherFullName").value = "";
+        document.getElementById("teacherPassword").value = "";
+        setStatus(data.message, false);
+        loadTeachers();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    window.setTeacherStatus = async function setTeacherStatus(username, isActive) {
+      try {
+        const response = await fetch(`${API_BASE}/admin/teachers/status`, {
+          method: "POST",
+          headers: adminHeaders(),
+          body: JSON.stringify({ username, isActive }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not update teacher status.");
+        setStatus(data.message, false);
+        loadTeachers();
+        loadAssignments();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    };
+
+    window.resetTeacherPassword = async function resetTeacherPassword(username, fullName) {
+      const next = await PUI.prompt({
+        title: "Reset Teacher Password",
+        message: `Set a new password for ${fullName || "this teacher"}.`,
+        placeholder: "New password (min 6 characters)",
+        inputType: "password",
+        confirmLabel: "Reset Password",
+      });
+      if (next === null) return;
+      if (next.length < 6) {
+        setStatus("Password must be at least 6 characters.", true);
+        return;
+      }
+      try {
+        const response = await fetch(`${API_BASE}/admin/passwords/set`, {
+          method: "POST",
+          headers: adminHeaders(),
+          body: JSON.stringify({
+            accountType: "teacher",
+            username,
+            newPassword: next,
+            forceChangeOnLogin: true,
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not reset teacher password.");
+        setStatus("Teacher password reset. They sign in with login ID teacher.", false);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    };
+
+    async function setAccountPassword(accountType, payload) {
+      const response = await fetch(`${API_BASE}/admin/passwords/set`, {
+        method: "POST",
+        headers: adminHeaders(),
+        body: JSON.stringify({ accountType, forceChangeOnLogin: true, ...payload }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Could not update password.");
+      return data;
+    }
+
+    async function setStudentPasswordFromAdmin() {
+      try {
+        const studentId = document.getElementById("setStudentId").value.trim();
+        const newPassword = document.getElementById("setStudentPassword").value;
+        if (!studentId || !newPassword || newPassword.length < 6) {
+          throw new Error("Student ID and password (min 6 chars) are required.");
+        }
+        const data = await setAccountPassword("student", { studentId, newPassword });
+        document.getElementById("setStudentPassword").value = "";
+        setStatus(data.message, false);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    async function setTeacherPasswordFromAdmin() {
+      try {
+        const username = document.getElementById("setTeacherSelect").value.trim();
+        const newPassword = document.getElementById("setTeacherPassword").value;
+        if (!username || !newPassword || newPassword.length < 6) {
+          throw new Error("Select a teacher and enter a password (min 6 chars).");
+        }
+        const data = await setAccountPassword("teacher", { username, newPassword });
+        document.getElementById("setTeacherPassword").value = "";
+        setStatus(data.message, false);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    async function setAdminPasswordFromAdmin() {
+      try {
+        const newPassword = document.getElementById("setAdminPassword").value;
+        if (!newPassword || newPassword.length < 6) {
+          throw new Error("Admin password must be at least 6 characters.");
+        }
+        const data = await setAccountPassword("admin", { username: "admin", newPassword, forceChangeOnLogin: false });
+        document.getElementById("setAdminPassword").value = "";
+        setStatus(data.message, false);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    function clearAssignmentForm() {
+      assignmentEditId = null;
+      document.getElementById("assignmentEditId").value = "";
+      document.getElementById("assignTeacherSelect").value = "";
+      document.getElementById("assignGrade").value = "";
+      document.getElementById("assignSection").value = "";
+      document.getElementById("assignSubject").value = "";
+      document.getElementById("assignYear").value = "";
+      document.getElementById("assignmentFormTitle").textContent = "Add Assignment";
+      document.getElementById("saveAssignmentBtn").textContent = "Save Assignment";
+      document.getElementById("cancelAssignmentEditBtn").style.display = "none";
+    }
+
+    function renderAssignmentsTable() {
+      const body = document.getElementById("assignmentsBody");
+      if (!assignmentRows.length) {
+        body.innerHTML = "<tr><td colspan='7' class='p-muted'>No assignments found.</td></tr>";
+        return;
+      }
+      body.innerHTML = assignmentRows.map((a) => `
+        <tr>
+          <td><strong>${a.TeacherFullName || a.TeacherUserName}</strong></td>
+          <td>${a.Grade}</td>
+          <td>${a.GradeSection}</td>
+          <td>${a.Subject}</td>
+          <td>${a.AcademicYear || "—"}</td>
+          <td>${a.IsActive ? "Active" : "Inactive"}</td>
+          <td>
+            <button class="p-btn p-btn--ghost p-btn--sm" type="button" onclick="editAssignment(${a.ID})">Edit</button>
+            <button class="p-btn p-btn--warn p-btn--sm" type="button" onclick="deleteAssignment(${a.ID})">Delete</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    window.editAssignment = function editAssignment(id) {
+      const row = assignmentRows.find((a) => Number(a.ID) === Number(id));
+      if (!row) return;
+      assignmentEditId = row.ID;
+      document.getElementById("assignmentEditId").value = String(row.ID);
+      document.getElementById("assignTeacherSelect").value = row.TeacherUserName || "";
+      document.getElementById("assignGrade").value = row.Grade || "";
+      document.getElementById("assignSection").value = row.GradeSection || "";
+      document.getElementById("assignSubject").value = row.Subject || "";
+      document.getElementById("assignYear").value = row.AcademicYear || "";
+      document.getElementById("assignmentFormTitle").textContent = "Edit Assignment";
+      document.getElementById("saveAssignmentBtn").textContent = "Update Assignment";
+      document.getElementById("cancelAssignmentEditBtn").style.display = "inline-flex";
+      switchAdminView("assignments");
+      document.getElementById("assignmentFormTitle").scrollIntoView({ behavior: "smooth", block: "start" });
+      PUI.info("Update the fields above and click Update Assignment.");
+    };
+
+    window.deleteAssignment = async function deleteAssignment(id) {
+      const row = assignmentRows.find((a) => Number(a.ID) === Number(id));
+      const label = row
+        ? `${row.TeacherFullName || row.TeacherUserName} — ${row.Grade} ${row.GradeSection} ${row.Subject}`
+        : "this assignment";
+      const ok = await PUI.confirm({
+        title: "Delete assignment",
+        message: `Remove ${label}? This cannot be undone.`,
+        confirmLabel: "Delete",
+        danger: true,
+      });
+      if (!ok) return;
+      try {
+        const response = await fetch(`${API_BASE}/admin/teachers/assignments/${id}`, {
+          method: "DELETE",
+          headers: adminHeaders(),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not delete assignment.");
+        if (Number(assignmentEditId) === Number(id)) clearAssignmentForm();
+        PUI.success(data.message || "Assignment deleted.");
+        setStatus(data.message || "Assignment deleted.", false);
+        loadAssignments();
+      } catch (error) {
+        PUI.error(error.message);
+        setStatus(error.message, true);
+      }
+    };
+
+    async function saveAssignment() {
+      try {
+        const payload = {
+          username: document.getElementById("assignTeacherSelect").value.trim(),
+          grade: document.getElementById("assignGrade").value.trim(),
+          section: document.getElementById("assignSection").value.trim(),
+          subject: document.getElementById("assignSubject").value.trim(),
+          academicYear: document.getElementById("assignYear").value.trim(),
+        };
+        if (!payload.username || !payload.grade || !payload.section || !payload.subject) {
+          throw new Error("Teacher, grade, section, and subject are required.");
+        }
+        const isEdit = Boolean(assignmentEditId);
+        const response = await fetch(
+          isEdit
+            ? `${API_BASE}/admin/teachers/assignments/${assignmentEditId}`
+            : `${API_BASE}/admin/teachers/assign`,
+          {
+            method: isEdit ? "PUT" : "POST",
+            headers: adminHeaders(),
+            body: JSON.stringify(payload),
+          }
+        );
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not save assignment.");
+        clearAssignmentForm();
+        PUI.success(data.message);
+        setStatus(data.message, false);
+        loadAssignments();
+      } catch (error) {
+        PUI.error(error.message);
+        setStatus(error.message, true);
+      }
+    }
+
+    async function loadAssignments() {
+      try {
+        const response = await fetch(`${API_BASE}/admin/teachers/assignments`, { headers: adminHeaders() });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not load assignments.");
+        assignmentRows = data.assignments || [];
+        renderAssignmentsTable();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    function requireAdminSession() {
+      if (localStorage.getItem("esemiAdminSession") !== "active" || !adminToken()) {
+        window.location.href = "login.html";
+      }
+    }
+
+    async function searchStudents() {
+      try {
+        const raw = document.getElementById("searchQuery").value.trim();
+        if (!raw) {
+          bodyEl.innerHTML = "<tr><td colspan='7' class='p-muted'>Enter a Student ID or name to search.</td></tr>";
+          setStatus("Enter a Student ID or name to search.", false);
+          return;
+        }
+        setStatus("Searching...", false);
+        const q = encodeURIComponent(raw);
+        const response = await fetch(`${API_BASE}/admin/students?query=${q}`, { headers: adminHeaders() });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Failed to load students.");
+        if (!data.students.length) {
+          bodyEl.innerHTML = "<tr><td colspan='7' class='p-muted'>No students found.</td></tr>";
+          const hint = /^\d+$/.test(raw)
+            ? `No student with ID ${raw}.`
+            : `No students matching "${raw}".`;
+          setStatus(hint, false);
+          return;
+        }
+
+        bodyEl.innerHTML = data.students.map((s) => `
+          <tr>
+            <td>${s.studentId}</td>
+            <td>${s.name || "-"}</td>
+            <td>${s.classLabel || "-"}</td>
+            <td>${s.academicYear || "-"}</td>
+            <td>${s.portalIsActive === null ? "Not created" : (s.portalIsActive ? "Active" : "Inactive")}</td>
+            <td>${s.mustChangePwd === null ? "-" : (s.mustChangePwd ? "Yes" : "No")}</td>
+            <td>
+              <button class="p-btn p-btn--ghost p-btn--sm" onclick="toggleStatus('${s.studentId}', true)">Activate</button>
+              <button class="p-btn p-btn--warn p-btn--sm" onclick="toggleStatus('${s.studentId}', false)">Deactivate</button>
+              <button class="p-btn p-btn--accent p-btn--sm" onclick="resetPassword('${s.studentId}')">Reset Pwd</button>
+            </td>
+          </tr>
+        `).join("");
+        const typeLabel = data.matchType === "studentId"
+          ? `exact Student ID ${raw}`
+          : `name "${raw}"`;
+        setStatus(`Found ${data.students.length} student(s) for ${typeLabel}.`, false);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    async function toggleStatus(studentId, isActive) {
+      try {
+        const response = await fetch(`${API_BASE}/admin/portal-status`, {
+          method: "POST",
+          headers: adminHeaders(),
+          body: JSON.stringify({ studentId, isActive }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not update status.");
+        setStatus(data.message, false);
+        searchStudents();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    async function resetPassword(studentId) {
+      try {
+        const custom = await PUI.prompt({
+          title: "Reset Student Password",
+          message: `Set a new password for student ${studentId}. Leave blank to reset to Student ID (${studentId}).`,
+          placeholder: "New password (optional)",
+          confirmLabel: "Reset Password",
+        });
+        if (custom === null) return;
+        const newPassword = custom.trim() || String(studentId);
+        const response = await fetch(`${API_BASE}/admin/passwords/set`, {
+          method: "POST",
+          headers: adminHeaders(),
+          body: JSON.stringify({
+            accountType: "student",
+            studentId,
+            newPassword,
+            forceChangeOnLogin: true,
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not reset password.");
+        setStatus(`Password reset for Student ${studentId}.`, false);
+        searchStudents();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    async function uploadScheduleFromPicker(file) {
+      if (!scheduleReuploadTarget) return;
+      try {
+        const ok = await uploadSchedulePdf(file, scheduleReuploadTarget, `${scheduleReuploadTarget.grade} ${scheduleReuploadTarget.section} Schedule`);
+        scheduleReuploadTarget = null;
+        if (!ok) return;
+        await loadScheduleList();
+      } catch (error) {
+        setStatus(error.message, true);
+        PUI.error(error.message);
+      }
+    }
+
+    async function uploadPublicDoc() {
+      try {
+        const fileInput = document.getElementById("publicDocFile");
+        const file = fileInput.files[0];
+        if (!file) throw new Error("Select a PDF first.");
+        if (!isPdfFile(file)) {
+          PUI.error("Only PDF files are allowed. Please select a .pdf file.");
+          fileInput.value = "";
+          return;
+        }
+        const docType = document.getElementById("publicDocType").value.trim().toLowerCase();
+        if (!["brochure", "handbook"].includes(docType)) {
+          throw new Error("Type must be brochure or handbook.");
+        }
+        const form = new FormData();
+        form.append("docType", docType);
+        form.append("academicYear", document.getElementById("publicDocYear").value.trim());
+        form.append("title", document.getElementById("publicDocTitle").value.trim());
+        form.append("file", file);
+        const response = await fetch(`${API_BASE}/admin/upload/public-doc`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${adminToken()}` },
+          body: form,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Public document upload failed.");
+        setStatus(`${docType} uploaded successfully.`, false);
+        fileInput.value = "";
+        loadPublicDocPreview();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    async function loadPublicDocPreview() {
+      const preview = document.getElementById("publicDocPreview");
+      try {
+        const response = await fetch(`${API_BASE}/public-docs`);
+        const data = await response.json();
+        if (!response.ok) throw new Error("Could not load preview.");
+        const brochure = data.brochure
+          ? `<div><strong>Brochure:</strong> ${data.brochure.title || data.brochure.fileName} (${data.brochure.academicYear || "N/A"})</div>`
+          : "<div><strong>Brochure:</strong> Not uploaded yet.</div>";
+        const handbook = data.handbook
+          ? `<div><strong>Handbook:</strong> ${data.handbook.title || data.handbook.fileName} (${data.handbook.academicYear || "N/A"})</div>`
+          : "<div><strong>Handbook:</strong> Not uploaded yet.</div>";
+        preview.innerHTML = brochure + handbook;
+      } catch (_err) {
+        preview.textContent = "Unable to load document preview.";
+      }
+    }
+
+    function changeAdminPassword() {
+      (async () => {
+        const feedback = document.getElementById("passwordModalFeedback");
+        try {
+          const current = document.getElementById("adminCurrentPassword").value;
+          const next = document.getElementById("adminNewPassword").value;
+          const confirm = document.getElementById("adminConfirmPassword").value;
+          if (!next || next.length < 6) throw new Error("New password must be at least 6 characters.");
+          if (next !== confirm) throw new Error("New password and confirmation do not match.");
+          const response = await fetch(`${API_BASE}/admin/change-password`, {
+            method: "POST",
+            headers: adminHeaders(),
+            body: JSON.stringify({ currentPassword: current, newPassword: next }),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.message || "Could not update admin password.");
+          document.getElementById("adminCurrentPassword").value = "";
+          document.getElementById("adminNewPassword").value = "";
+          document.getElementById("adminConfirmPassword").value = "";
+          feedback.textContent = "";
+          passwordModal.classList.remove("is-open");
+          setStatus("Admin password updated successfully.", false);
+        } catch (error) {
+          feedback.textContent = error.message;
+          feedback.style.color = "var(--p-accent)";
+        }
+      })();
+    }
+
+    function editableCell(value, rowIndex, colKey) {
+      const safe = String(value ?? "");
+      return `<td contenteditable="true" onblur="updateCell(${rowIndex}, '${colKey}', this.textContent)">${safe}</td>`;
+    }
+
+    function renderColumnControls() {
+      const controls = document.getElementById("columnControls");
+      if (!reportColumns.length) {
+        controls.innerHTML = "";
+        return;
+      }
+      controls.innerHTML = reportColumns.map((col) => `
+        <div class="p-row" style="gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--p-border);border-radius:var(--p-radius-sm);background:${col.visible ? "var(--p-bg-subtle)" : "#f9fafb"};">
+          <label style="font-size:0.875rem;display:flex;gap:6px;align-items:center;margin:0;">
+            <input type="checkbox" ${col.visible ? "checked" : ""} onchange="toggleColumn('${col.key}', this.checked)" />
+            ${col.label}
+          </label>
+          <button class="p-btn p-btn--ghost p-btn--sm" type="button" onclick="removeColumn('${col.key}')" ${col.visible ? "" : "disabled"}>Remove</button>
+        </div>
+      `).join("");
+    }
+
+    function honorFilterSummary(type, year, semester, period, grade, section) {
+      const parts = [`${year}`, `Semester ${semester}`, `Period ${period}`];
+      if (type === "class") parts.unshift(`${grade} ${section}`);
+      return parts.join(" · ");
+    }
+
+    function renderReportTable() {
+      const visibleCols = reportColumns.filter((c) => c.visible);
+      const head = document.getElementById("reportHead");
+      const body = document.getElementById("reportBody");
+      if (!reportRows.length) {
+        head.innerHTML = "";
+        body.innerHTML = "<tr><td class='p-muted'>No rows found for selected filters.</td></tr>";
+        return;
+      }
+      head.innerHTML = `<tr>${visibleCols.map((c) => `<th>${c.label}</th>`).join("")}<th>Actions</th></tr>`;
+      body.innerHTML = reportRows.map((row, rowIndex) => `
+        <tr>
+          ${visibleCols.map((col) => editableCell(row[col.key], rowIndex, col.key)).join("")}
+          <td><button class="p-btn p-btn--warn p-btn--sm" onclick="removeReportRow(${rowIndex})">Remove Row</button></td>
+        </tr>
+      `).join("");
+    }
+
+    function setupColumns(type) {
+      reportColumns = type === "class"
+        ? [
+            { key: "rank", label: "Rank", visible: true },
+            { key: "studentId", label: "Student ID", visible: true },
+            { key: "studentName", label: "Student Name", visible: true },
+            { key: "averageScore", label: "Average Score", visible: true },
+            { key: "subjectCount", label: "Subjects", visible: true },
+          ]
+        : [
+            { key: "rank", label: "Rank", visible: true },
+            { key: "studentId", label: "Student ID", visible: true },
+            { key: "studentName", label: "Student Name", visible: true },
+            { key: "classLabel", label: "Class", visible: true },
+            { key: "averageScore", label: "Average Score", visible: true },
+            { key: "subjectCount", label: "Subjects", visible: true },
+          ];
+      renderColumnControls();
+      document.getElementById("honorColumnPanel").style.display = "";
+    }
+
+    async function loadHonorReport() {
+      try {
+        const type = document.getElementById("reportType").value;
+        const year = document.getElementById("reportYear").value;
+        const semester = document.getElementById("reportSemester").value;
+        const period = document.getElementById("reportPeriod").value;
+        const grade = document.getElementById("reportGrade").value;
+        const section = document.getElementById("reportSection").value;
+        if (!year || !semester || !period) {
+          throw new Error("Select Academic Year, Semester, and Period from the dropdowns.");
+        }
+        if (type === "class" && (!grade || !section)) {
+          throw new Error("Select Grade and Section for a class honor roll report.");
+        }
+
+        setStatus("Loading honor roll...", false);
+        const params = new URLSearchParams({ academicYear: year, semester, period });
+        if (type === "class") {
+          params.set("grade", grade);
+          params.set("section", section);
+        }
+        const response = await fetch(`${API_BASE}/admin/honor/${type}?${params.toString()}`, { headers: adminHeaders() });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Failed to load report.");
+
+        reportRows = data.rows || [];
+        reportMetadata = data.metadata || {};
+        setupColumns(type);
+        renderReportTable();
+        const summary = honorFilterSummary(type, year, semester, period, grade, section);
+        if (!reportRows.length) {
+          setStatus(`No honor roll students found for ${summary}. Try a different period or class.`, false);
+          return;
+        }
+        setStatus(`Loaded ${reportRows.length} student(s) for ${summary}. Remove columns or rows, then print.`, false);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    function printReportPdf() {
+      if (!reportRows.length) {
+        setStatus("Load a report first.", true);
+        return;
+      }
+      const visibleCols = reportColumns.filter((c) => c.visible);
+      if (!visibleCols.length) {
+        PUI.warning("Select at least one column to print.");
+        return;
+      }
+      const title = document.getElementById("reportType").value === "class"
+        ? "ESEMI Class Honor Roll"
+        : "ESEMI School Honor Roll";
+      const metaText = honorFilterSummary(
+        document.getElementById("reportType").value,
+        reportMetadata.academicYear || document.getElementById("reportYear").value,
+        reportMetadata.semester || document.getElementById("reportSemester").value,
+        reportMetadata.period || document.getElementById("reportPeriod").value,
+        reportMetadata.grade || document.getElementById("reportGrade").value,
+        reportMetadata.section || document.getElementById("reportSection").value,
+      );
+      const html = `
+        <html>
+        <head>
+          <title>${title}</title>
+          <style>
+            body { font-family: Inter, Arial, sans-serif; padding: 20px; color: #111827; }
+            h2 { margin: 0 0 8px; color: #e60000; }
+            p { margin: 0 0 12px; color: #4b5563; font-size: 12px; }
+            table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; }
+            th { background: #ffe0e0; color: #b30000; }
+          </style>
+        </head>
+        <body>
+          <h2>${title}</h2>
+          <p>${metaText}</p>
+          <table>
+            <thead><tr>${visibleCols.map((c) => `<th>${c.label}</th>`).join("")}</tr></thead>
+            <tbody>
+              ${reportRows.map((r) => `<tr>${visibleCols.map((c) => `<td>${r[c.key] ?? ""}</td>`).join("")}</tr>`).join("")}
+            </tbody>
+          </table>
+        </body>
+        </html>`;
+      const w = window.open("", "_blank");
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+      w.focus();
+      w.print();
+    }
+
+    window.updateCell = (rowIndex, colKey, text) => {
+      if (!reportRows[rowIndex]) return;
+      reportRows[rowIndex][colKey] = text;
+    };
+    window.removeReportRow = (rowIndex) => {
+      reportRows.splice(rowIndex, 1);
+      renderReportTable();
+    };
+    window.toggleColumn = (colKey, checked) => {
+      if (!checked) {
+        const visibleCount = reportColumns.filter((c) => c.visible).length;
+        if (visibleCount <= 1) {
+          PUI.warning("At least one column must remain visible.");
+          renderColumnControls();
+          return;
+        }
+      }
+      reportColumns = reportColumns.map((c) => (c.key === colKey ? { ...c, visible: checked } : c));
+      renderColumnControls();
+      renderReportTable();
+    };
+    window.removeColumn = (colKey) => {
+      toggleColumn(colKey, false);
+    };
+    window.restoreAllColumns = () => {
+      reportColumns = reportColumns.map((c) => ({ ...c, visible: true }));
+      renderColumnControls();
+      renderReportTable();
+    };
+
+    window.toggleStatus = toggleStatus;
+    window.resetPassword = resetPassword;
+    document.getElementById("searchBtn").addEventListener("click", searchStudents);
+    document.getElementById("searchQuery").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") searchStudents();
+    });
+    document.getElementById("refreshScheduleListBtn").addEventListener("click", loadScheduleList);
+    document.getElementById("scheduleListYear").addEventListener("change", loadScheduleList);
+    document.getElementById("scheduleReuploadFile").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (file && !isPdfFile(file)) {
+        PUI.error("Only PDF files are allowed. Please select a .pdf file.");
+        event.target.value = "";
+        return;
+      }
+      if (file) uploadScheduleFromPicker(file);
+      event.target.value = "";
+    });
+    document.getElementById("uploadPublicDocBtn").addEventListener("click", uploadPublicDoc);
+    document.getElementById("publicDocFile").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (file && !isPdfFile(file)) {
+        PUI.error("Only PDF files are allowed. Please select a .pdf file.");
+        event.target.value = "";
+      }
+    });
+    document.getElementById("loadReportBtn").addEventListener("click", loadHonorReport);
+    document.getElementById("reportType").addEventListener("change", syncHonorClassVisibility);
+    document.getElementById("reportYear").addEventListener("change", syncHonorTermSelects);
+    document.getElementById("reportSemester").addEventListener("change", syncHonorTermSelects);
+    document.getElementById("reportGrade").addEventListener("change", syncHonorClassSelects);
+    document.getElementById("reportSection").addEventListener("change", syncHonorTermSelects);
+    document.getElementById("restoreColumnsBtn").addEventListener("click", () => window.restoreAllColumns());
+    document.getElementById("printReportBtn").addEventListener("click", printReportPdf);
+    document.getElementById("changeAdminPasswordBtn").addEventListener("click", changeAdminPassword);
+    document.getElementById("setStudentPasswordBtn").addEventListener("click", setStudentPasswordFromAdmin);
+    document.getElementById("setTeacherPasswordBtn").addEventListener("click", setTeacherPasswordFromAdmin);
+    document.getElementById("setAdminPasswordBtn").addEventListener("click", setAdminPasswordFromAdmin);
+    document.getElementById("addRecoveryEmailBtn").addEventListener("click", addRecoveryEmail);
+    document.getElementById("loadRecoveryEmailsBtn").addEventListener("click", loadRecoveryEmails);
+    document.getElementById("saveTeacherBtn").addEventListener("click", saveTeacher);
+    document.getElementById("loadTeachersBtn").addEventListener("click", loadTeachers);
+    document.getElementById("saveAssignmentBtn").addEventListener("click", saveAssignment);
+    document.getElementById("cancelAssignmentEditBtn").addEventListener("click", clearAssignmentForm);
+    document.getElementById("refreshAssignmentsBtn").addEventListener("click", loadAssignments);
+    document.getElementById("gradesSubnav").addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-grades-tab]");
+      if (!btn) return;
+      switchGradesTab(btn.dataset.gradesTab);
+    });
+    document.getElementById("loadPendingGradesBtn").addEventListener("click", loadPendingGrades);
+    document.getElementById("loadStudentSheetBtn").addEventListener("click", loadStudentGradeSheet);
+    document.getElementById("reviewGrade").addEventListener("change", syncClassSelects);
+    document.getElementById("reviewSection").addEventListener("change", syncClassSelects);
+    document.getElementById("reviewYear").addEventListener("change", () => syncTermSelects("class"));
+    document.getElementById("reviewSemester").addEventListener("change", () => syncTermSelects("class"));
+    document.getElementById("reviewStudentYear").addEventListener("change", () => syncTermSelects("student"));
+    document.getElementById("reviewStudentSemester").addEventListener("change", () => syncTermSelects("student"));
+    document.getElementById("reviewStudentId").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") loadStudentGradeSheet();
+    });
+    document.getElementById("publishSelectedGradesBtn").addEventListener("click", () => publishGrades("selected"));
+    document.getElementById("publishBatchGradesBtn").addEventListener("click", () => publishGrades("batch"));
+    document.getElementById("selectAllPendingGrades").addEventListener("change", (event) => {
+      document.querySelectorAll(".pending-grade-check").forEach((box) => {
+        box.checked = event.target.checked;
+      });
+    });
+    document.getElementById("adminLogoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("esemiAdminSession");
+      localStorage.removeItem("esemiAdminToken");
+      window.location.href = "login.html";
+    });
+    requireAdminSession();
+    switchGradesTab("class");
+    loadPublicDocPreview();
+    loadTeachers();
+    loadAssignments();
+    loadRecoveryEmails();
+  </script>
+</body>
+</html>
