@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="portal-ui.css" />
+  <link rel="stylesheet" href="portal-ui.css?v=2" />
   <script src="portal-ui.js"></script>
   <style>
     .admin-view { display: none; }
@@ -101,8 +101,8 @@
   <div class="p-app p-animate-in">
     <aside class="p-sidebar">
       <div class="p-sidebar__brand">
-        <img src="assets/esemilogo.png" alt="ESEMI logo" />
-        <span>ESEMI Admin</span>
+        <img class="p-sidebar__logo" src="assets/esemilogo.png" alt="ESEMI logo" />
+        <p class="p-sidebar__portal-title">Admin Portal</p>
       </div>
       <nav class="p-nav" id="adminMenu">
         <button class="p-nav__btn is-active" data-view="students" type="button">Students</button>
@@ -111,6 +111,7 @@
         <button class="p-nav__btn" data-view="assignments" type="button">Assignments</button>
         <button class="p-nav__btn" data-view="grades" type="button">Grades</button>
         <button class="p-nav__btn" data-view="documents" type="button">Documents</button>
+        <button class="p-nav__btn" data-view="events" type="button">Events</button>
         <button class="p-nav__btn" data-view="honor" type="button">Honor Roll</button>
       </nav>
     </aside>
@@ -402,6 +403,41 @@
             </div>
           </div>
 
+          <!-- Public Events -->
+          <div id="view-events" class="admin-view">
+            <p class="p-muted" style="margin:0 0 var(--p-space-4);">Manage upcoming events shown on the public website home page.</p>
+            <div class="admin-block">
+              <h4 id="eventFormTitle">Add Event</h4>
+              <input type="hidden" id="eventEditId" value="" />
+              <div class="p-field-grid" style="margin-bottom:var(--p-space-4);">
+                <div><label class="p-label" for="eventTitle">Title</label><input id="eventTitle" placeholder="Event title" /></div>
+                <div><label class="p-label" for="eventDate">Date</label><input id="eventDate" type="date" /></div>
+                <div><label class="p-label" for="eventVenue">Venue</label><input id="eventVenue" placeholder="Optional venue" /></div>
+                <div><label class="p-label" for="eventSortOrder">Sort order</label><input id="eventSortOrder" type="number" value="0" /></div>
+              </div>
+              <div style="margin-bottom:var(--p-space-4);">
+                <label class="p-label" for="eventDescription">Description</label>
+                <textarea id="eventDescription" rows="3" placeholder="Event details" style="width:100%;"></textarea>
+              </div>
+              <label class="p-label" style="display:flex;align-items:center;gap:8px;margin-bottom:var(--p-space-4);">
+                <input id="eventPublished" type="checkbox" checked /> Published on website
+              </label>
+              <div class="p-row">
+                <button class="p-btn p-btn--accent p-btn--sm" id="saveEventBtn" type="button">Save Event</button>
+                <button class="p-btn p-btn--ghost p-btn--sm" id="cancelEventEditBtn" type="button" style="display:none;">Cancel Edit</button>
+                <button class="p-btn p-btn--ghost p-btn--sm" id="refreshEventsBtn" type="button">Refresh</button>
+              </div>
+            </div>
+            <div class="p-table-wrap">
+              <table class="p-table">
+                <thead>
+                  <tr><th>Date</th><th>Title</th><th>Venue</th><th>Published</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="eventsBody"><tr><td colspan="5" class="p-muted">Loading events...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
           <!-- Honor Roll -->
           <div id="view-honor" class="admin-view">
             <p class="p-muted" style="margin:0 0 var(--p-space-4);">Load honor lists, edit for print/PDF output. Edits are not saved to the database.</p>
@@ -462,6 +498,7 @@
   <!-- Change Password Modal -->
   <div class="p-modal" id="passwordModal">
     <div class="p-modal__box">
+      <button class="p-modal__close" id="closePasswordModalX" type="button" aria-label="Close">&times;</button>
       <h3>Change Admin Password</h3>
       <p class="p-muted">Update your own admin sign-in password.</p>
       <div style="margin:var(--p-space-4) 0 var(--p-space-3);">
@@ -514,6 +551,7 @@
       assignments: "Class Assignments",
       grades: "Review & Publish Grades",
       documents: "Documents & Schedules",
+      events: "Public Events",
       honor: "Honor Roll Reports",
     };
     let reportRows = [];
@@ -717,6 +755,9 @@
       if (view === "documents") {
         loadDocumentsTab();
       }
+      if (view === "events") {
+        loadEventsTab();
+      }
       if (view === "honor") {
         loadHonorTab();
       }
@@ -786,6 +827,107 @@
       }
     }
 
+    async function loadEventsTab() {
+      try {
+        await loadEventsList();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    function resetEventForm() {
+      document.getElementById("eventEditId").value = "";
+      document.getElementById("eventTitle").value = "";
+      document.getElementById("eventDate").value = "";
+      document.getElementById("eventVenue").value = "";
+      document.getElementById("eventDescription").value = "";
+      document.getElementById("eventSortOrder").value = "0";
+      document.getElementById("eventPublished").checked = true;
+      document.getElementById("eventFormTitle").textContent = "Add Event";
+      document.getElementById("cancelEventEditBtn").style.display = "none";
+    }
+
+    async function loadEventsList() {
+      const response = await fetch(`${API_BASE}/admin/events`, { headers: adminHeaders() });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Could not load events.");
+      const body = document.getElementById("eventsBody");
+      const rows = data.events || [];
+      if (!rows.length) {
+        body.innerHTML = `<tr><td colspan="5" class="p-muted">No events yet.</td></tr>`;
+        return;
+      }
+      body.innerHTML = rows.map((e) => {
+        const date = e.EventDate ? new Date(e.EventDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—";
+        return `<tr>
+          <td>${date}</td>
+          <td>${e.Title}</td>
+          <td>${e.Venue || "—"}</td>
+          <td>${e.IsPublished ? "Yes" : "No"}</td>
+          <td>
+            <button class="p-btn p-btn--ghost p-btn--sm" type="button" onclick="editEvent(${e.ID})">Edit</button>
+            <button class="p-btn p-btn--ghost p-btn--sm" type="button" onclick="deleteEvent(${e.ID})">Delete</button>
+          </td>
+        </tr>`;
+      }).join("");
+    }
+
+    window.editEvent = function editEvent(id) {
+      fetch(`${API_BASE}/admin/events`, { headers: adminHeaders() })
+        .then((r) => r.json())
+        .then((data) => {
+          const row = (data.events || []).find((e) => Number(e.ID) === Number(id));
+          if (!row) return;
+          document.getElementById("eventEditId").value = row.ID;
+          document.getElementById("eventTitle").value = row.Title || "";
+          document.getElementById("eventDate").value = row.EventDate ? new Date(row.EventDate).toISOString().slice(0, 10) : "";
+          document.getElementById("eventVenue").value = row.Venue || "";
+          document.getElementById("eventDescription").value = row.Description || "";
+          document.getElementById("eventSortOrder").value = String(row.SortOrder ?? 0);
+          document.getElementById("eventPublished").checked = !!row.IsPublished;
+          document.getElementById("eventFormTitle").textContent = "Edit Event";
+          document.getElementById("cancelEventEditBtn").style.display = "";
+        });
+    };
+
+    window.deleteEvent = async function deleteEvent(id) {
+      if (!confirm("Delete this event from the public website?")) return;
+      const response = await fetch(`${API_BASE}/admin/events/${id}`, { method: "DELETE", headers: adminHeaders() });
+      const data = await response.json();
+      if (!response.ok) {
+        setStatus(data.message || "Delete failed.", true);
+        return;
+      }
+      setStatus("Event deleted.", false);
+      await loadEventsList();
+    };
+
+    async function saveEvent() {
+      const payload = {
+        id: document.getElementById("eventEditId").value || undefined,
+        title: document.getElementById("eventTitle").value.trim(),
+        eventDate: document.getElementById("eventDate").value || null,
+        venue: document.getElementById("eventVenue").value.trim(),
+        description: document.getElementById("eventDescription").value.trim(),
+        sortOrder: Number(document.getElementById("eventSortOrder").value || 0),
+        isPublished: document.getElementById("eventPublished").checked,
+      };
+      if (!payload.title) {
+        setStatus("Event title is required.", true);
+        return;
+      }
+      const response = await fetch(`${API_BASE}/admin/events`, {
+        method: "POST",
+        headers: { ...adminHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Could not save event.");
+      setStatus(data.message || "Event saved.", false);
+      resetEventForm();
+      await loadEventsList();
+    }
+
     async function loadDocumentsTab() {
       try {
         const years = await loadScheduleYears();
@@ -815,6 +957,9 @@
       passwordModal.classList.add("is-open");
     });
     document.getElementById("closePasswordModalBtn").addEventListener("click", () => {
+      passwordModal.classList.remove("is-open");
+    });
+    document.getElementById("closePasswordModalX").addEventListener("click", () => {
       passwordModal.classList.remove("is-open");
     });
     document.getElementById("openRecoveryModalBtn").addEventListener("click", () => {
@@ -1782,6 +1927,9 @@
       if (e.key === "Enter") searchStudents();
     });
     document.getElementById("refreshScheduleListBtn").addEventListener("click", loadScheduleList);
+    document.getElementById("saveEventBtn").addEventListener("click", () => saveEvent().catch((e) => setStatus(e.message, true)));
+    document.getElementById("cancelEventEditBtn").addEventListener("click", resetEventForm);
+    document.getElementById("refreshEventsBtn").addEventListener("click", () => loadEventsList().catch((e) => setStatus(e.message, true)));
     document.getElementById("scheduleListYear").addEventListener("change", loadScheduleList);
     document.getElementById("scheduleReuploadFile").addEventListener("change", (event) => {
       const file = event.target.files[0];

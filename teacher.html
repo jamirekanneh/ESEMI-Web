@@ -7,77 +7,263 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="portal-ui.css" />
+  <link rel="stylesheet" href="portal-ui.css?v=2" />
   <script src="portal-ui.js"></script>
+  <style>
+    .teacher-view { display: none; }
+    .teacher-view.is-active { display: block; animation: p-fade-up 0.3s var(--p-ease) both; }
+    .teacher-status-bar {
+      padding: var(--p-space-4) var(--p-space-5);
+      border-radius: var(--p-radius-md);
+      background: var(--p-bg-subtle);
+      border: 1px solid var(--p-border);
+      font-size: 0.9375rem;
+      min-height: 2.75rem;
+      margin-bottom: var(--p-space-5);
+    }
+    .p-main { max-width: none; width: 100%; }
+    .assignment-subnav {
+      display: flex;
+      flex-direction: column;
+      gap: var(--p-space-1);
+      margin-top: var(--p-space-4);
+      padding-top: var(--p-space-4);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .assignment-subnav__label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.55);
+      margin-bottom: var(--p-space-2);
+      padding: 0 var(--p-space-3);
+    }
+    .assignment-subnav__btn {
+      border: none;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.82);
+      text-align: left;
+      padding: 0.625rem var(--p-space-3);
+      border-radius: var(--p-radius-sm);
+      font: inherit;
+      font-size: 0.8125rem;
+      line-height: 1.35;
+      cursor: pointer;
+      transition: background 0.15s var(--p-ease), color 0.15s var(--p-ease);
+    }
+    .assignment-subnav__btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+    .assignment-subnav__btn.is-active {
+      background: var(--p-red-bright);
+      color: var(--p-white);
+      font-weight: 600;
+    }
+    .assignment-subnav__btn small {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 400;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+    .grades-notice {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: var(--p-radius-md);
+      padding: var(--p-space-4) var(--p-space-5);
+      margin-bottom: var(--p-space-5);
+      font-size: 0.875rem;
+      color: #92400e;
+    }
+    .grades-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: var(--p-space-4);
+      margin-bottom: var(--p-space-5);
+    }
+    .status-pill {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: var(--p-radius-full);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .status-pill--pending { background: #fef3c7; color: #92400e; }
+    .status-pill--published { background: #d1fae5; color: #065f46; }
+    .status-pill--empty { background: #f3f4f6; color: #6b7280; }
+    .assignment-card {
+      padding: var(--p-space-4) var(--p-space-5);
+      border: 1px solid var(--p-border);
+      border-radius: var(--p-radius-md);
+      background: var(--p-surface);
+      margin-bottom: var(--p-space-3);
+    }
+    .assignment-card:last-child { margin-bottom: 0; }
+    .assignment-card h4 {
+      margin: 0 0 var(--p-space-1);
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .assignment-card p { margin: 0; font-size: 0.875rem; }
+  </style>
 </head>
-<body class="p-portal p-animate-in">
+<body class="p-portal">
   <div class="p-modal" id="changePasswordModal">
     <div class="p-modal__box">
+      <button class="p-modal__close" id="closeTeacherPasswordModalBtn" type="button" aria-label="Close">&times;</button>
       <h3>Change Your Password</h3>
       <p class="p-muted">Please set a new password before continuing.</p>
       <input id="teacherCurrentPassword" class="p-input" type="password" placeholder="Current password" style="margin-bottom: var(--p-space-3);" />
       <input id="teacherNewPassword" class="p-input" type="password" placeholder="New password (min 6 chars)" style="margin-bottom: var(--p-space-3);" />
       <input id="teacherConfirmPassword" class="p-input" type="password" placeholder="Confirm new password" style="margin-bottom: var(--p-space-4);" />
-      <button class="p-btn p-btn--accent" id="saveTeacherPasswordBtn" style="width:100%;">Update Password</button>
+      <button class="p-btn p-btn--accent" id="saveTeacherPasswordBtn" style="width:100%;" type="button">Update Password</button>
       <p class="p-muted" id="teacherPasswordFeedback" style="margin-top: var(--p-space-3);"></p>
     </div>
   </div>
 
-  <main class="p-page">
-    <header class="p-page-header p-page-header--bar">
-      <div>
-        <h2 style="margin:0;font-size:1.5rem;font-weight:700;letter-spacing:-0.03em;color:var(--p-red-800);">ESEMI Teacher Portal</h2>
-        <p class="p-muted" id="teacherWelcome" style="margin:var(--p-space-2) 0 0;"></p>
-        <p class="p-muted" style="margin:var(--p-space-1) 0 0;">You signed in with login ID <code>teacher</code>.</p>
+  <div class="p-app p-animate-in">
+    <aside class="p-sidebar">
+      <div class="p-sidebar__brand">
+        <img class="p-sidebar__logo" src="assets/esemilogo.png" alt="ESEMI logo" />
+        <p class="p-sidebar__portal-title">Teacher Portal</p>
       </div>
-      <div class="p-row">
-        <button class="p-btn p-btn--ghost p-btn--sm" id="openTeacherPasswordBtn">Change Password</button>
-        <button class="p-btn p-btn--ghost p-btn--sm" id="logoutTeacherBtn">Sign out</button>
+      <nav class="p-nav" id="teacherMenu">
+        <button class="p-nav__btn is-active" data-view="grades" type="button">Enter Grades</button>
+        <button class="p-nav__btn" data-view="assignments" type="button">My Assignments</button>
+      </nav>
+      <div class="assignment-subnav" id="assignmentSubnav" style="display:none;">
+        <div class="assignment-subnav__label">Switch class</div>
+        <div id="assignmentSubnavBtns"></div>
       </div>
-    </header>
+    </aside>
 
-    <section class="p-card p-section">
-      <h3>My Teaching Assignments</h3>
-      <div id="assignmentsBox" class="p-muted">Loading assignments...</div>
-    </section>
+    <main class="p-main">
+      <header class="p-page-header">
+        <div>
+          <h2>Teacher Portal</h2>
+          <p class="p-muted" id="teacherWelcome" style="margin:var(--p-space-1) 0 0;font-size:0.875rem;"></p>
+        </div>
+        <div class="p-row">
+          <button class="p-btn p-btn--ghost p-btn--sm" id="openTeacherPasswordBtn" type="button">Change Password</button>
+          <button class="p-btn p-btn--ghost p-btn--sm" id="logoutTeacherBtn" type="button">Sign out</button>
+        </div>
+      </header>
 
-    <section class="p-card p-section">
-      <h3>Add / Edit Grades</h3>
-      <div class="p-row">
-        <select id="assignmentSelect"><option value="">Select assignment</option></select>
-        <input id="gradeYear" placeholder="Academic Year" />
-        <input id="gradeSemester" placeholder="Semester" />
-        <input id="gradePeriod" placeholder="Period" />
-        <button class="p-btn p-btn--ghost p-btn--sm" id="loadStudentsBtn">Load Students</button>
-      </div>
-      <p class="p-muted" style="margin-top: var(--p-space-3);">Grades are saved in the database but stay hidden from students until admin reviews and publishes them.</p>
-      <div class="p-table-wrap" style="margin-top: var(--p-space-4);">
-        <table class="p-table">
-          <thead>
-            <tr><th>Student</th><th>Quiz</th><th>Classwork</th><th>Exam</th><th>Total</th><th>Action</th></tr>
-          </thead>
-          <tbody id="teacherGradesBody">
-            <tr><td colspan="6" class="p-muted">No students loaded.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+      <div class="teacher-status-bar p-muted" id="statusBar">Ready.</div>
+
+      <section class="p-panel">
+        <div class="p-panel__head">
+          <h3 id="panelTitle">Enter Grades</h3>
+        </div>
+        <div class="p-panel__body">
+          <div id="view-grades" class="teacher-view is-active">
+            <div class="grades-notice">
+              Grades you save are stored immediately but stay hidden from students until an admin reviews and publishes them to the student portal.
+            </div>
+
+            <div class="grades-toolbar">
+              <div class="p-field-grid" style="flex:1;min-width:280px;">
+                <div>
+                  <label class="p-label" for="gradeYear">Academic Year</label>
+                  <select class="p-select" id="gradeYear"><option value="">Select year</option></select>
+                </div>
+                <div>
+                  <label class="p-label" for="gradeSemester">Semester</label>
+                  <select class="p-select" id="gradeSemester"><option value="">Select semester</option></select>
+                </div>
+                <div>
+                  <label class="p-label" for="gradePeriod">Period</label>
+                  <select class="p-select" id="gradePeriod"><option value="">Select period</option></select>
+                </div>
+              </div>
+              <div class="p-row" style="flex-shrink:0;">
+                <button class="p-btn p-btn--accent p-btn--sm" id="loadStudentsBtn" type="button">Load Students</button>
+                <button class="p-btn p-btn--ghost p-btn--sm" id="saveAllBtn" type="button" disabled>Save All</button>
+              </div>
+            </div>
+
+            <p class="p-muted" id="activeAssignmentLabel" style="margin:0 0 var(--p-space-4);">Select a class from the sidebar to begin.</p>
+
+            <div class="p-table-wrap">
+              <table class="p-table">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Quiz</th>
+                    <th>Classwork</th>
+                    <th>Exam</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="teacherGradesBody">
+                  <tr><td colspan="7" class="p-muted">Choose a class, term, and load students.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="view-assignments" class="teacher-view">
+            <p class="p-muted" style="margin:0 0 var(--p-space-4);">Classes and subjects assigned to you by the admin. Use <strong>Enter Grades</strong> to switch between them and record marks.</p>
+            <div id="assignmentsBox" class="p-muted">Loading assignments...</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <script>
     const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
     const API_BASE = isLocal ? "http://localhost:4000/api" : "/api";
     const teacherToken = localStorage.getItem("esemiTeacherToken");
     const teacherName = localStorage.getItem("esemiTeacherName") || "Teacher";
+    const mustChangePassword = localStorage.getItem("esemiTeacherMustChangePassword") === "true";
+
     const assignments = [];
     let students = [];
-    const mustChangePassword = localStorage.getItem("esemiTeacherMustChangePassword") === "true";
+    let gradeFilterOptions = null;
+    let activeAssignmentId = "";
+
     if (!teacherToken) window.location.href = "login.html";
     document.getElementById("teacherWelcome").textContent = `Signed in as ${teacherName}`;
 
+    const viewTitles = { grades: "Enter Grades", assignments: "My Assignments" };
+
+    function headers() { return { Authorization: `Bearer ${teacherToken}` }; }
+
+    function setStatus(msg, isError) {
+      const bar = document.getElementById("statusBar");
+      bar.textContent = msg;
+      bar.style.color = isError ? "var(--p-red-700)" : "";
+    }
+
+    function fillSelect(selectEl, values, placeholder, selected) {
+      const opts = [`<option value="">${placeholder}</option>`];
+      (values || []).forEach((value) => {
+        const v = String(value);
+        opts.push(`<option value="${v.replace(/"/g, "&quot;")}"${v === String(selected || "") ? " selected" : ""}>${v}</option>`);
+      });
+      selectEl.innerHTML = opts.join("");
+    }
+
+    function activeAssignment() {
+      return assignments.find((a) => String(a.ID) === String(activeAssignmentId)) || null;
+    }
+
+    function assignmentLabel(a) {
+      return `${a.Grade} ${a.GradeSection} — ${a.Subject}`;
+    }
+
     function showPasswordModal(show) {
       const modal = document.getElementById("changePasswordModal");
+      const closeBtn = document.getElementById("closeTeacherPasswordModalBtn");
       modal.classList.toggle("is-open", show);
+      if (closeBtn) closeBtn.style.display = show && mustChangePassword ? "none" : "";
       if (show) {
         document.getElementById("teacherCurrentPassword").value = "";
         document.getElementById("teacherNewPassword").value = "";
@@ -85,7 +271,254 @@
         document.getElementById("teacherPasswordFeedback").textContent = "";
       }
     }
-    if (mustChangePassword) showPasswordModal(true);
+
+    function switchView(view) {
+      document.querySelectorAll("#teacherMenu .p-nav__btn").forEach((btn) => {
+        btn.classList.toggle("is-active", btn.dataset.view === view);
+      });
+      document.querySelectorAll(".teacher-view").forEach((el) => {
+        el.classList.toggle("is-active", el.id === `view-${view}`);
+      });
+      document.getElementById("panelTitle").textContent = viewTitles[view] || "Teacher Portal";
+      if (view === "grades" && !gradeFilterOptions) loadGradeFilters();
+    }
+
+    function renderAssignmentSubnav() {
+      const wrap = document.getElementById("assignmentSubnav");
+      const btns = document.getElementById("assignmentSubnavBtns");
+      if (!assignments.length) {
+        wrap.style.display = "none";
+        return;
+      }
+      wrap.style.display = "";
+      btns.innerHTML = assignments.map((a) => {
+        const active = String(a.ID) === String(activeAssignmentId);
+        const year = a.AcademicYear ? `Year ${a.AcademicYear}` : "Any year";
+        return `<button type="button" class="assignment-subnav__btn${active ? " is-active" : ""}" data-id="${a.ID}">
+          ${assignmentLabel(a)}
+          <small>${year}</small>
+        </button>`;
+      }).join("");
+      btns.querySelectorAll(".assignment-subnav__btn").forEach((btn) => {
+        btn.addEventListener("click", () => selectAssignment(btn.dataset.id));
+      });
+    }
+
+    function updateActiveAssignmentLabel() {
+      const a = activeAssignment();
+      const el = document.getElementById("activeAssignmentLabel");
+      if (!a) {
+        el.textContent = "Select a class from the sidebar to begin.";
+        return;
+      }
+      el.innerHTML = `Recording grades for <strong>${assignmentLabel(a)}</strong>${a.AcademicYear ? ` · default year ${a.AcademicYear}` : ""}.`;
+    }
+
+    function syncTermSelects() {
+      if (!gradeFilterOptions) return;
+      const yearEl = document.getElementById("gradeYear");
+      const semesterEl = document.getElementById("gradeSemester");
+      const periodEl = document.getElementById("gradePeriod");
+      const a = activeAssignment();
+      const preferredYear = yearEl.value || a?.AcademicYear || gradeFilterOptions.defaultYear || "";
+
+      fillSelect(yearEl, gradeFilterOptions.academicYears || [], "Select year", preferredYear);
+      const year = yearEl.value;
+      const semesters = year ? (gradeFilterOptions.semestersByYear?.[year] || []) : [];
+      fillSelect(semesterEl, semesters, "Select semester", semesterEl.value);
+      const semester = semesterEl.value;
+
+      let periods = [];
+      if (a && year && semester) {
+        const classKey = `${a.Grade}|${a.GradeSection}|${year}|${semester}`;
+        periods = gradeFilterOptions.periodsByClassYearSemester?.[classKey] || [];
+      }
+      if (!periods.length && year && semester) {
+        periods = gradeFilterOptions.periodsByYearSemester?.[`${year}|${semester}`] || [];
+      }
+      fillSelect(periodEl, periods, "Select period", periodEl.value);
+    }
+
+    function clearGradeTable(message) {
+      students = [];
+      document.getElementById("saveAllBtn").disabled = true;
+      document.getElementById("teacherGradesBody").innerHTML =
+        `<tr><td colspan="7" class="p-muted">${message || "Choose a class, term, and load students."}</td></tr>`;
+    }
+
+    function selectAssignment(id) {
+      if (String(id) === String(activeAssignmentId)) return;
+      activeAssignmentId = String(id);
+      renderAssignmentSubnav();
+      updateActiveAssignmentLabel();
+      syncTermSelects();
+      clearGradeTable("Term updated — click Load Students to open the roster.");
+      switchView("grades");
+      const a = activeAssignment();
+      setStatus(a ? `Switched to ${assignmentLabel(a)}.` : "Ready.");
+    }
+
+    async function loadGradeFilters() {
+      const response = await fetch(`${API_BASE}/teacher/grades/filters`, { headers: headers() });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Could not load term filters.");
+      gradeFilterOptions = data;
+      syncTermSelects();
+    }
+
+    async function loadAssignments() {
+      const response = await fetch(`${API_BASE}/teacher/me/assignments`, { headers: headers() });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Could not load assignments.");
+      assignments.splice(0, assignments.length, ...(data.assignments || []));
+
+      document.getElementById("assignmentsBox").innerHTML = assignments.length
+        ? assignments.map((a) => `<article class="assignment-card">
+            <h4>${assignmentLabel(a)}</h4>
+            <p class="p-muted">${a.AcademicYear ? `Academic year ${a.AcademicYear}` : "No default year set"}</p>
+            <button class="p-btn p-btn--ghost p-btn--sm" type="button" data-open-assignment="${a.ID}" style="margin-top:var(--p-space-3);">Enter grades</button>
+          </article>`).join("")
+        : `<p class="p-muted">No assignments yet. Ask admin to assign classes and subjects.</p>`;
+
+      document.querySelectorAll("[data-open-assignment]").forEach((btn) => {
+        btn.addEventListener("click", () => selectAssignment(btn.dataset.openAssignment));
+      });
+
+      if (!activeAssignmentId && assignments[0]) activeAssignmentId = String(assignments[0].ID);
+      renderAssignmentSubnav();
+      updateActiveAssignmentLabel();
+      if (gradeFilterOptions) syncTermSelects();
+    }
+
+    function statusBadge(g) {
+      if (!g || g.QuizScore == null && g.ClassworkScore == null && g.ExamScore == null && g.TotalMark == null) {
+        return `<span class="status-pill status-pill--empty">Not saved</span>`;
+      }
+      if (g.IsPublished) return `<span class="status-pill status-pill--published">Published</span>`;
+      return `<span class="status-pill status-pill--pending">Pending review</span>`;
+    }
+
+    function getTermValues() {
+      return {
+        year: document.getElementById("gradeYear").value,
+        semester: document.getElementById("gradeSemester").value,
+        period: document.getElementById("gradePeriod").value,
+      };
+    }
+
+    async function loadStudents() {
+      const a = activeAssignment();
+      if (!a) {
+        PUI.error("Select a class from the sidebar first.");
+        return;
+      }
+      const { year, semester, period } = getTermValues();
+      if (!year || !semester || !period) {
+        PUI.error("Select academic year, semester, and period.");
+        return;
+      }
+
+      setStatus(`Loading ${assignmentLabel(a)} — ${year}, semester ${semester}, period ${period}...`);
+
+      const params = new URLSearchParams({ grade: a.Grade, section: a.GradeSection, academicYear: year });
+      const studentResp = await fetch(`${API_BASE}/teacher/students?${params.toString()}`, { headers: headers() });
+      const studentData = await studentResp.json();
+      if (!studentResp.ok) throw new Error(studentData.message || "Could not load students.");
+      students = studentData.students || [];
+
+      const existingResp = await fetch(`${API_BASE}/teacher/grades?` + new URLSearchParams({
+        grade: a.Grade, section: a.GradeSection, subject: a.Subject,
+        academicYear: year, semester, period,
+      }).toString(), { headers: headers() });
+      const existingData = await existingResp.json();
+      if (!existingResp.ok) throw new Error(existingData.message || "Could not load existing grades.");
+      const byStudent = {};
+      (existingData.grades || []).forEach((g) => { byStudent[String(g.StudentID)] = g; });
+
+      const tbody = document.getElementById("teacherGradesBody");
+      tbody.innerHTML = students.length ? students.map((s) => {
+        const g = byStudent[s.studentId] || {};
+        const published = !!g.IsPublished;
+        const dis = published ? " disabled" : "";
+        return `<tr data-student-id="${s.studentId}">
+          <td>${s.studentName} <span class="p-muted">(${s.studentId})</span></td>
+          <td><input class="p-input p-input--narrow" id="q_${s.studentId}" value="${g.QuizScore ?? ""}"${dis} /></td>
+          <td><input class="p-input p-input--narrow" id="c_${s.studentId}" value="${g.ClassworkScore ?? ""}"${dis} /></td>
+          <td><input class="p-input p-input--narrow" id="e_${s.studentId}" value="${g.ExamScore ?? ""}"${dis} /></td>
+          <td><input class="p-input p-input--narrow" id="t_${s.studentId}" value="${g.TotalMark ?? ""}"${dis} /></td>
+          <td id="st_${s.studentId}">${statusBadge(g)}</td>
+          <td><button class="p-btn p-btn--accent p-btn--sm" onclick="saveOne('${s.studentId}')" type="button"${published ? " disabled" : ""}>Save</button></td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="7" class="p-muted">No students found for this class and year.</td></tr>`;
+
+      document.getElementById("saveAllBtn").disabled = !students.length;
+      setStatus(students.length
+        ? `Loaded ${students.length} student(s) for ${assignmentLabel(a)}.`
+        : `No students in roster for ${assignmentLabel(a)}.`);
+    }
+
+    async function saveOne(studentId, quiet) {
+      const a = activeAssignment();
+      if (!a) return false;
+      const { year, semester, period } = getTermValues();
+      if (!year || !semester || !period) {
+        if (!quiet) PUI.error("Select academic year, semester, and period.");
+        return false;
+      }
+
+      const payload = {
+        studentId,
+        grade: a.Grade,
+        section: a.GradeSection,
+        subject: a.Subject,
+        academicYear: year,
+        semester,
+        period,
+        quizScore: document.getElementById(`q_${studentId}`).value.trim(),
+        classworkScore: document.getElementById(`c_${studentId}`).value.trim(),
+        examScore: document.getElementById(`e_${studentId}`).value.trim(),
+        totalMark: document.getElementById(`t_${studentId}`).value.trim(),
+      };
+
+      const response = await fetch(`${API_BASE}/teacher/grades/upsert`, {
+        method: "POST",
+        headers: { ...headers(), "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        if (!quiet) PUI.error(data.message || "Save failed.");
+        return false;
+      }
+
+      const statusEl = document.getElementById(`st_${studentId}`);
+      if (statusEl) {
+        statusEl.innerHTML = `<span class="status-pill status-pill--pending">Pending review</span>`;
+      }
+      if (!quiet) PUI.success("Saved — awaiting admin publish to student portal.");
+      return true;
+    }
+
+    async function saveAll() {
+      if (!students.length) return;
+      setStatus("Saving all grades...");
+      let ok = 0;
+      let fail = 0;
+      for (const s of students) {
+        const row = document.querySelector(`tr[data-student-id="${s.studentId}"] button`);
+        if (row && row.disabled) continue;
+        const saved = await saveOne(s.studentId, true);
+        if (saved) ok += 1;
+        else fail += 1;
+      }
+      if (fail) {
+        PUI.error(`Saved ${ok}, failed ${fail}.`);
+        setStatus(`Saved ${ok} grade(s); ${fail} could not be saved.`, true);
+      } else {
+        PUI.success(`Saved ${ok} grade(s). Awaiting admin publish.`);
+        setStatus(`Saved ${ok} grade(s) for ${assignmentLabel(activeAssignment())}. Awaiting admin review.`);
+      }
+    }
 
     async function changeTeacherPassword() {
       const current = document.getElementById("teacherCurrentPassword").value;
@@ -116,94 +549,22 @@
       feedback.textContent = "";
     }
 
-    function headers() { return { Authorization: `Bearer ${teacherToken}` }; }
-    function selectedAssignment() {
-      const id = document.getElementById("assignmentSelect").value;
-      return assignments.find((a) => String(a.ID) === String(id));
-    }
-
-    async function loadAssignments() {
-      const response = await fetch(`${API_BASE}/teacher/me/assignments`, { headers: headers() });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Could not load assignments.");
-      assignments.splice(0, assignments.length, ...(data.assignments || []));
-      const select = document.getElementById("assignmentSelect");
-      select.innerHTML = `<option value="">Select assignment</option>` + assignments.map((a) =>
-        `<option value="${a.ID}">${a.Grade} ${a.GradeSection} - ${a.Subject}${a.AcademicYear ? ` (${a.AcademicYear})` : ""}</option>`
-      ).join("");
-      document.getElementById("assignmentsBox").innerHTML = assignments.length
-        ? assignments.map((a) => `<div style="padding:var(--p-space-2) 0;border-bottom:1px solid var(--p-border);">${a.Grade} ${a.GradeSection} - ${a.Subject}${a.AcademicYear ? ` (${a.AcademicYear})` : ""}</div>`).join("")
-        : "No assignments yet. Ask admin to assign classes/subjects.";
-    }
-
-    async function loadStudents() {
-      const a = selectedAssignment();
-      if (!a) return;
-      const year = document.getElementById("gradeYear").value.trim() || a.AcademicYear || "";
-      const semester = document.getElementById("gradeSemester").value.trim();
-      const period = document.getElementById("gradePeriod").value.trim();
-      if (!year || !semester || !period) return;
-
-      const params = new URLSearchParams({ grade: a.Grade, section: a.GradeSection, academicYear: year });
-      const studentResp = await fetch(`${API_BASE}/teacher/students?${params.toString()}`, { headers: headers() });
-      const studentData = await studentResp.json();
-      if (!studentResp.ok) throw new Error(studentData.message || "Could not load students.");
-      students = studentData.students || [];
-
-      const existingResp = await fetch(`${API_BASE}/teacher/grades?` + new URLSearchParams({
-        grade: a.Grade, section: a.GradeSection, subject: a.Subject, academicYear: year, semester, period,
-      }).toString(), { headers: headers() });
-      const existingData = await existingResp.json();
-      if (!existingResp.ok) throw new Error(existingData.message || "Could not load existing grades.");
-      const byStudent = {};
-      (existingData.grades || []).forEach((g) => { byStudent[String(g.StudentID)] = g; });
-
-      const tbody = document.getElementById("teacherGradesBody");
-      tbody.innerHTML = students.length ? students.map((s) => {
-        const g = byStudent[s.studentId] || {};
-        return `<tr>
-          <td>${s.studentName} (${s.studentId})</td>
-          <td><input class="p-input p-input--narrow" id="q_${s.studentId}" value="${g.QuizScore ?? ""}" /></td>
-          <td><input class="p-input p-input--narrow" id="c_${s.studentId}" value="${g.ClassworkScore ?? ""}" /></td>
-          <td><input class="p-input p-input--narrow" id="e_${s.studentId}" value="${g.ExamScore ?? ""}" /></td>
-          <td><input class="p-input p-input--narrow" id="t_${s.studentId}" value="${g.TotalMark ?? ""}" /></td>
-          <td><button class="p-btn p-btn--accent p-btn--sm" onclick="saveOne('${s.studentId}')">Save</button></td>
-        </tr>`;
-      }).join("") : `<tr><td colspan="6" class="p-muted">No students found for this class/year.</td></tr>`;
-    }
-
-    async function saveOne(studentId) {
-      const a = selectedAssignment();
-      if (!a) return;
-      const payload = {
-        studentId,
-        grade: a.Grade,
-        section: a.GradeSection,
-        subject: a.Subject,
-        academicYear: document.getElementById("gradeYear").value.trim() || a.AcademicYear || "",
-        semester: document.getElementById("gradeSemester").value.trim(),
-        period: document.getElementById("gradePeriod").value.trim(),
-        quizScore: document.getElementById(`q_${studentId}`).value.trim(),
-        classworkScore: document.getElementById(`c_${studentId}`).value.trim(),
-        examScore: document.getElementById(`e_${studentId}`).value.trim(),
-        totalMark: document.getElementById(`t_${studentId}`).value.trim(),
-      };
-      const response = await fetch(`${API_BASE}/teacher/grades/upsert`, {
-        method: "POST",
-        headers: { ...headers(), "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        PUI.error(data.message || "Save failed.");
-        return;
-      }
-      PUI.success("Saved. Awaiting admin publish.");
-    }
-
     window.saveOne = saveOne;
-    document.getElementById("loadStudentsBtn").addEventListener("click", loadStudents);
+
+    document.querySelectorAll("#teacherMenu .p-nav__btn").forEach((btn) => {
+      btn.addEventListener("click", () => switchView(btn.dataset.view));
+    });
+    document.getElementById("gradeYear").addEventListener("change", () => syncTermSelects());
+    document.getElementById("gradeSemester").addEventListener("change", () => syncTermSelects());
+    document.getElementById("loadStudentsBtn").addEventListener("click", () => {
+      loadStudents().catch((e) => {
+        PUI.error(e.message);
+        setStatus(e.message, true);
+      });
+    });
+    document.getElementById("saveAllBtn").addEventListener("click", saveAll);
     document.getElementById("openTeacherPasswordBtn").addEventListener("click", () => showPasswordModal(true));
+    document.getElementById("closeTeacherPasswordModalBtn").addEventListener("click", () => showPasswordModal(false));
     document.getElementById("saveTeacherPasswordBtn").addEventListener("click", changeTeacherPassword);
     document.getElementById("logoutTeacherBtn").addEventListener("click", () => {
       localStorage.removeItem("esemiTeacherToken");
@@ -211,7 +572,15 @@
       localStorage.removeItem("esemiTeacherMustChangePassword");
       window.location.href = "login.html";
     });
-    loadAssignments().catch((e) => PUI.error(e.message));
+
+    if (mustChangePassword) showPasswordModal(true);
+
+    Promise.all([loadAssignments(), loadGradeFilters()])
+      .then(() => setStatus(assignments.length ? "Select a term and load students." : "No assignments on file."))
+      .catch((e) => {
+        PUI.error(e.message);
+        setStatus(e.message, true);
+      });
   </script>
 </body>
 </html>

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="portal-ui.css" />
+  <link rel="stylesheet" href="portal-ui.css?v=2" />
   <script src="portal-ui.js"></script>
   <style>
     .finance-grid {
@@ -77,8 +77,8 @@
   <div class="p-app p-animate-in">
     <aside class="p-sidebar">
       <div class="p-sidebar__brand">
-        <img src="assets/esemilogo.png" alt="ESEMI logo" />
-        <span>ESEMI Portal</span>
+        <img class="p-sidebar__logo" src="assets/esemilogo.png" alt="ESEMI logo" />
+        <p class="p-sidebar__portal-title">Student Portal</p>
       </div>
       <nav class="p-nav" id="menu">
         <button class="p-nav__btn is-active" data-view="overview">Overview</button>
@@ -120,6 +120,7 @@
 
   <div class="p-modal password-modal" id="passwordModal">
     <div class="p-modal__box">
+      <button class="p-modal__close" id="closePasswordModalBtn" type="button" aria-label="Close">&times;</button>
       <h4>Update your password</h4>
       <p class="p-muted">Your account uses the default password. Choose a new one or keep it for now.</p>
       <div style="margin: var(--p-space-4) 0;"><input class="p-input" id="currentPassword" type="password" placeholder="Current password" /></div>
@@ -765,6 +766,9 @@
     }
     document.getElementById("changePasswordBtn").addEventListener("click", () => updatePassword(false));
     document.getElementById("keepPasswordBtn").addEventListener("click", () => updatePassword(true));
+    document.getElementById("closePasswordModalBtn").addEventListener("click", () => {
+      passwordModal.classList.remove("is-open");
+    });
 
     function openEditProfile(options = {}) {
       const p = state.profile || {};

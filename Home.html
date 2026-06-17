@@ -4,450 +4,288 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Home | Elizabeth Sele Mulbah Institute</title>
-
-  <!-- Bootstrap 5.3.3 CSS -->
+  <meta name="description" content="Elizabeth Sele Mulbah Institute — where learning is fun and future leaders are developed." />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="shared.css" />
-
-  <style>
-    body {
-      margin: 0;
-      padding-top: 100px; /* Space for fixed navbar */
-    }
-
-    .main-container {
-      max-width: 1200px;
-      margin: 40px auto;
-      padding: 0 15px;
-    }
-
-    .motto-box {
-      border: 2px solid #b30000;
-      background-color: #fff5f5;
-      padding: 30px;
-      border-radius: 10px;
-      text-align: center;
-      margin-bottom: 40px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    }
-
-    .motto-box h4, .motto-box p {
-      margin: 0;
-      color: #b30000;
-    }
-
-    .motto-box p {
-      font-weight: 600;
-    }
-
-    /* Hero Carousel Styles */
-
-    .carousel-container {
-      width: 100%;
-      margin-bottom: 0;
-    }
-
-    .carousel-item img {
-      width: 100%;
-      height: 550px;
-      object-fit: cover;
-      filter: brightness(0.8);
-    }
-
-    .carousel-caption {
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(8px);
-      border-radius: 12px;
-      padding: 20px;
-      bottom: 40px;
-      max-width: 600px;
-      margin: 0 auto;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .carousel-caption h3 {
-      font-weight: 700;
-      color: #fff;
-    }
-
-    @media (max-width: 767px) {
-      .carousel-item img {
-        height: 350px;
-      }
-      .carousel-caption {
-        padding: 10px;
-        bottom: 20px;
-      }
-    }
-
-    .announcement-item {
-      border-left: 5px solid #b30000;
-      background: #fefefe;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .announcement-item strong {
-      color: #b30000;
-      font-size: 1.2em;
-    }
-
-    footer {
-      background-color: #b30000;
-      color: #fff;
-      text-align: center;
-      padding: 20px;
-    }
-
-    /* Events Section */
-    .events-section {
-      padding: 60px 20px;
-      background-color: #f7f7f7;
-      border-top: 3px solid red;
-      border-bottom: 3px solid black;
-      margin-top: 50px;
-    }
-
-    .events-title {
-      text-align: center;
-      font-size: 2rem;
-      color: #c10000;
-      margin-bottom: 40px;
-      font-weight: bold;
-      font-family: 'Segoe UI', sans-serif;
-    }
-
-    .events-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-around;
-      gap: 20px;
-      max-width: 1300px;
-      margin: auto;
-    }
-
-    .event-card {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      width: 300px;
-      padding: 30px 20px;
-      text-align: center;
-      transition: transform 0.3s;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .event-card:hover {
-      transform: translateY(-5px);
-    }
-
-    .event-icon {
-      font-size: 3rem;
-      color: red;
-      margin-bottom: 20px;
-    }
-
-    .event-title {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 10px;
-    }
-
-    .event-description {
-      font-size: 0.95rem;
-      color: #555;
-      margin-bottom: 20px;
-    }
-
-    .event-button {
-      background-color: #d10000;
-      color: white;
-      padding: 10px 15px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background-color 0.2s;
-    }
-
-    .event-button:hover {
-      background-color: #a30000;
-    }
-
-    @media (max-width: 768px) {
-      .events-container {
-        flex-direction: column;
-        align-items: center;
-      }
-    }
-  </style>
-
-  <!-- Firebase SDK -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="shared.css?v=9" />
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
 
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg shadow-sm">
+  <nav class="navbar navbar-expand-lg">
     <div class="container">
       <a class="navbar-brand d-flex align-items-center" href="Home.html">
         <img src="assets/esemilogo.png" alt="ESEMI Logo" class="navbar-logo" />
         <span>ESEMI</span>
       </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse justify-content-end" id="navMenu">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link" href="login.html">Student Login</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active-page" href="Home.html">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="blog.html">Blog</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="about.html">About</a>
-          </li>
-          <li class="nav-item">
-            <div class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">☀️</div>
-          </li>
+        <ul class="navbar-nav align-items-lg-center">
+          <li class="nav-item"><a class="nav-link" href="Home.html"><i class="bi bi-house-door"></i> Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html"><i class="bi bi-info-circle"></i> About</a></li>
+          <li class="nav-item"><a class="nav-link" href="gallery.html"><i class="bi bi-images"></i> Gallery</a></li>
+          <li class="nav-item"><a class="nav-link" href="blog.html"><i class="bi bi-journal-text"></i> Blog</a></li>
+          <li class="nav-item"><a class="nav-link btn-nav-portal" href="login.html"><i class="bi bi-box-arrow-in-right"></i> Student Portal</a></li>
+          <li class="nav-item"><div class="theme-toggle" id="themeToggle" title="Toggle theme"><i class="bi bi-sun-fill"></i></div></li>
         </ul>
       </div>
     </div>
   </nav>
 
-  <!-- Hero Carousel -->
-  <div id="carouselExampleDark" class="carousel slide carousel-fade" data-bs-ride="carousel">
-    <div class="carousel-indicators" id="carouselIndicators"></div>
+  <div id="carouselExampleDark" class="carousel slide carousel-fade hero-carousel">
+    <div class="carousel-indicators" id="carouselIndicators">
+      <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+      <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="1" aria-label="Slide 2"></button>
+      <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="2" aria-label="Slide 3"></button>
+      <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="3" aria-label="Slide 4"></button>
+      <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="4" aria-label="Slide 5"></button>
+    </div>
     <div class="carousel-inner" id="carouselInner">
-      <!-- Default Slides (esemi1-5.jpg) -->
-      <div class="carousel-item active" data-bs-interval="5000">
-        <img src="assets/esemi1.jpg" class="d-block w-100" alt="ESEMI Campus">
+      <div class="carousel-item active">
+        <img src="assets/esemi1.jpg" alt="ESEMI campus">
         <div class="carousel-caption">
-          <h3>Welcome to ESEMI</h3>
-          <p>Nurturing the next generation of leaders in a fun and engaging environment.</p>
+          <h1>Where <span class="text-red">Learning</span> is Fun</h1>
+          <p>Excellence in education since 2011 — nurturing leaders for Liberia and beyond.</p>
+          <div class="hero-actions">
+            <a class="btn-hero btn-hero--primary" href="login.html"><i class="bi bi-box-arrow-in-right"></i> Open Student Portal</a>
+            <a class="btn-hero btn-hero--ghost" href="about.html"><i class="bi bi-arrow-right"></i> Discover ESEMI</a>
+          </div>
         </div>
       </div>
-      <div class="carousel-item" data-bs-interval="5000">
-        <img src="assets/esemi2.jpg" class="d-block w-100" alt="Students Learning">
+      <div class="carousel-item">
+        <img src="assets/esemi2.jpg" alt="Students learning">
         <div class="carousel-caption">
-          <h3>Excellence in Education</h3>
-          <p>Providing high-quality academic programs in Science, Arts, and ICT.</p>
+          <h1>Science, Arts &amp; ICT</h1>
+          <p>Programs designed to prepare students for real-world challenges.</p>
         </div>
       </div>
-      <div class="carousel-item" data-bs-interval="5000">
-        <img src="assets/esemi3.jpg" class="d-block w-100" alt="School Activities">
+      <div class="carousel-item">
+        <img src="assets/esemi3.jpg" alt="School activities">
         <div class="carousel-caption">
-          <h3>Practical Learning</h3>
-          <p>Hands-on experiences that prepare students for real-world challenges.</p>
+          <h1>A Community of Leaders</h1>
+          <p>Character, creativity, and academic rigor in every classroom.</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <img src="assets/esemi4.jpg" alt="ICT and learning">
+        <div class="carousel-caption">
+          <h1>Modern Learning Spaces</h1>
+          <p>Equipping students with skills for tomorrow.</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <img src="assets/esemi5.jpg" alt="Student life">
+        <div class="carousel-caption">
+          <h1>Vibrant Student Life</h1>
+          <p>Where future leaders are developed every day.</p>
         </div>
       </div>
     </div>
-    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
-      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Previous</span>
-    </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
-      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Next</span>
-    </button>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
   </div>
 
-  <!-- Main content -->
-  <div class="main-container">
-    <!-- Motto Section -->
+  <div class="stats-strip reveal">
+    <div class="stat-card"><i class="bi bi-calendar-check"></i><strong>2011</strong><span>Established</span></div>
+    <div class="stat-card"><i class="bi bi-people-fill"></i><strong>500+</strong><span>Students</span></div>
+    <div class="stat-card"><i class="bi bi-award-fill"></i><strong>15+</strong><span>Years</span></div>
+    <div class="stat-card"><i class="bi bi-book-fill"></i><strong>3</strong><span>Programs</span></div>
+  </div>
+
+  <div class="main-container" style="padding-top: 48px;">
     <div class="motto-box reveal">
-      <h1 style="color: var(--brand-red);"><b>Elizabeth SELE MULBAH INSTITUTE</b></h1>
-      <h5 class="mb-2">Established May 11, 2011</h5>
-      <h4 class="mt-2">ESEMI, Where Learning is Fun.</h4>
-      <h4 class="mt-2">ESEMI, Where Future Leaders Are Developed.</h4>
+      <p class="motto-est">Established May 11, 2011</p>
+      <h1 class="section-title--serif">Elizabeth Sele Mulbah Institute</h1>
+      <div class="motto-taglines">
+        <span class="motto-tag"><i class="bi bi-stars"></i> Where Learning is Fun</span>
+        <span class="motto-tag"><i class="bi bi-trophy"></i> Future Leaders Developed</span>
+      </div>
     </div>
-
-    <h2 class="mb-3 reveal">Announcements</h2>
-    <div id="announcementsList" class="reveal">Loading announcements...</div>
+    <div class="section-header section-header--split reveal">
+      <div class="section-header__main">
+        <span class="section-eyebrow"><i class="bi bi-lightning-charge-fill"></i> Why ESEMI</span>
+        <h2 class="section-title section-title--dark">Building minds, character &amp; confidence</h2>
+      </div>
+      <p class="section-subtitle">A supportive environment where students grow intellectually, socially, and morally.</p>
+    </div>
+    <div class="pillars-grid reveal-stagger reveal">
+      <article class="pillar-card">
+        <div class="pillar-icon"><i class="bi bi-mortarboard-fill"></i></div>
+        <h3>Academic Excellence</h3>
+        <p>Rigorous programs in science, arts, and ICT with hands-on learning and strong results.</p>
+      </article>
+      <article class="pillar-card">
+        <div class="pillar-icon"><i class="bi bi-heart-fill"></i></div>
+        <h3>Character &amp; Community</h3>
+        <p>We develop disciplined, compassionate students who lead with integrity.</p>
+      </article>
+      <article class="pillar-card">
+        <div class="pillar-icon"><i class="bi bi-laptop-fill"></i></div>
+        <h3>Digital Future</h3>
+        <p>Modern ICT labs and the student portal keep families connected.</p>
+      </article>
+    </div>
   </div>
 
-  <!-- Firebase Script -->
+  <section class="accomplishments-section reveal">
+    <div class="section-header reveal">
+      <span class="section-eyebrow"><i class="bi bi-trophy-fill"></i> Quiz &amp; Excellence</span>
+      <h2 class="section-title">Our accomplishments</h2>
+      <p class="section-subtitle">ESEMI students compete — and win — across Margibi, Montserrado, and beyond.</p>
+    </div>
+    <div class="accomplishments-grid reveal-stagger reveal">
+      <article class="accomplishment-card">
+        <i class="bi bi-trophy-fill"></i>
+        <div><span class="accomplishment-badge accomplishment-badge--champion">Champion</span><h3>All Girls Quizzing — Who Owns Lower Margibi</h3><p>Hosted by Senator Oscar Cooper</p></div>
+      </article>
+      <article class="accomplishment-card">
+        <i class="bi bi-trophy-fill"></i>
+        <div><span class="accomplishment-badge accomplishment-badge--champion">Champion</span><h3>SUPA 2022/2023</h3></div>
+      </article>
+      <article class="accomplishment-card">
+        <i class="bi bi-award"></i>
+        <div><span class="accomplishment-badge accomplishment-badge--runner">Runner Up</span><h3>LMDI (Margibi Chapter)</h3><p>2021/2022</p></div>
+      </article>
+      <article class="accomplishment-card">
+        <i class="bi bi-award"></i>
+        <div><span class="accomplishment-badge accomplishment-badge--runner">Runner Up</span><h3>LMDI (Montserrado Chapter)</h3><p>2023/2024</p></div>
+      </article>
+      <article class="accomplishment-card">
+        <i class="bi bi-trophy-fill"></i>
+        <div><span class="accomplishment-badge accomplishment-badge--champion">Champion</span><h3>Care For Christ Jr. High Quiz</h3><p>2023/2024</p></div>
+      </article>
+      <article class="accomplishment-card">
+        <i class="bi bi-trophy-fill"></i>
+        <div><span class="accomplishment-badge accomplishment-badge--champion">Champion</span><h3>Mighty Movement for Academic Excellence</h3><p>Jr. High Division — 2023/2024</p></div>
+      </article>
+    </div>
+  </section>
+
+  <div class="main-container" style="padding: 48px 20px 64px;">
+    <div class="section-header reveal">
+      <span class="section-eyebrow"><i class="bi bi-file-earmark-pdf-fill"></i> Resources</span>
+      <h2 class="section-title">Student documents</h2>
+      <p class="section-subtitle">Download official school documents for the current academic year.</p>
+    </div>
+    <div class="resource-grid reveal">
+      <article class="resource-card">
+        <div class="resource-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+        <div><h4>Student Brochure</h4><p><a id="brochureLink" href="#" target="_blank">Download brochure</a> — <span id="brochureText">awaiting upload</span></p></div>
+      </article>
+      <article class="resource-card">
+        <div class="resource-icon"><i class="bi bi-journal-bookmark-fill"></i></div>
+        <div><h4>Student Handbook</h4><p><a id="handbookLink" href="#" target="_blank">Download handbook</a> — <span id="handbookText">awaiting upload</span></p></div>
+      </article>
+    </div>
+  </div>
+
+  <section class="events-section">
+    <div class="section-header section-header--left reveal">
+      <span class="section-eyebrow"><i class="bi bi-calendar-event-fill"></i> Calendar</span>
+      <h2 class="section-title">Upcoming events</h2>
+      <p class="section-subtitle">Stay connected with school life, competitions, and community gatherings.</p>
+    </div>
+    <div class="events-container reveal" id="eventsContainer"><p class="events-empty"><i class="bi bi-hourglass-split"></i> Loading events...</p></div>
+  </section>
+
+  <div class="cta-banner reveal">
+    <div class="cta-banner__inner">
+      <h2><i class="bi bi-box-arrow-in-right"></i> Already a student?</h2>
+      <p>Sign in to view grades, schedules, finance, and honor roll — all in one place.</p>
+      <a class="btn-hero btn-hero--primary" href="login.html"><i class="bi bi-person-badge"></i> Go to Student Portal</a>
+    </div>
+  </div>
+
+  <footer class="esemi-footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <strong>Elizabeth Sele Mulbah Institute</strong>
+        <p>Educating future leaders through academic excellence, character, and community since 2011.</p>
+      </div>
+      <div class="footer-links">
+        <h5>Explore</h5>
+        <a href="Home.html"><i class="bi bi-chevron-right"></i> Home</a>
+        <a href="about.html"><i class="bi bi-chevron-right"></i> About</a>
+        <a href="gallery.html"><i class="bi bi-chevron-right"></i> Gallery</a>
+        <a href="blog.html"><i class="bi bi-chevron-right"></i> Blog</a>
+      </div>
+      <div class="footer-links">
+        <h5>Contact</h5>
+        <a href="mailto:esemi2011@gmail.com"><i class="bi bi-envelope"></i> esemi2011@gmail.com</a>
+        <a href="https://wa.me/+231777034812" target="_blank"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+        <a href="https://www.facebook.com/profile.php?id=100057339143146" target="_blank"><i class="bi bi-facebook"></i> Facebook</a>
+      </div>
+    </div>
+    <p class="footer-copy">&copy; 2025 Elizabeth Sele Mulbah Institute. All rights reserved.</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="shared.js?v=6"></script>
   <script src="firebase-config.js"></script>
   <script>
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-
-    const indicators = document.getElementById("carouselIndicators");
-    const inner = document.getElementById("carouselInner");
-
-    // Default high-quality local fallbacks
-    const defaultImages = [
-      { PicURL: 'assets/esemi1.jpg', PicTitle: 'Welcome to ESEMI', PicDescription: 'Excellence in Education Since 2011' },
-      { PicURL: 'assets/esemi2.jpg', PicTitle: 'Our Science Lab', PicDescription: 'Hands-on Learning for Future Innovators' },
-      { PicURL: 'assets/esemi3.jpg', PicTitle: 'Creative Arts', PicDescription: 'Nurturing Talent and Expression' },
-      { PicURL: 'assets/esemi4.jpg', PicTitle: 'Modern ICT', PicDescription: 'Equipping Students with Digital Skills' },
-      { PicURL: 'assets/esemi5.jpg', PicTitle: 'Student Life', PicDescription: 'A Community of Leaders' }
-    ];
-
-    db.collection("Carosel Images")
-      .orderBy("PicOrder", "asc")
-      .get()
+    db.collection("Carosel Images").orderBy("PicOrder", "asc").get()
       .then(snapshot => {
-        if (snapshot.empty) return; // Keep defaults if nothing in Firebase
-
-        // Clear defaults if we have Firebase images
+        if (snapshot.empty) return;
+        const indicators = document.getElementById("carouselIndicators");
+        const inner = document.getElementById("carouselInner");
         indicators.innerHTML = "";
         inner.innerHTML = "";
-        
         let index = 0;
         snapshot.forEach(doc => {
           const data = doc.data();
           const isActive = index === 0 ? "active" : "";
-
-          // Indicators
           const indicator = document.createElement("button");
           indicator.type = "button";
           indicator.setAttribute("data-bs-target", "#carouselExampleDark");
           indicator.setAttribute("data-bs-slide-to", index);
-          if (isActive) {
-            indicator.className = "active";
-            indicator.setAttribute("aria-current", "true");
-          }
+          if (isActive) { indicator.className = "active"; indicator.setAttribute("aria-current", "true"); }
           indicators.appendChild(indicator);
-
-          // Items
           const item = document.createElement("div");
           item.className = `carousel-item ${isActive}`;
-          item.setAttribute("data-bs-interval", "5000");
-
-          item.innerHTML = `
-            <img src="${data.PicURL || ""}" class="d-block w-100" alt="Slide ${index + 1}">
-            <div class="carousel-caption">
-              <h3>${data.PicTitle || "ESEMI News"}</h3>
-              <p>${data.PicDescription || ""}</p>
-            </div>
-          `;
+          const heroBtns = index === 0
+            ? `<div class="hero-actions"><a class="btn-hero btn-hero--primary" href="login.html"><i class="bi bi-box-arrow-in-right"></i> Open Student Portal</a></div>`
+            : "";
+          item.innerHTML = `<img src="${data.PicURL || ""}" alt="Slide ${index + 1}"><div class="carousel-caption"><h1>${data.PicTitle || "ESEMI"}</h1><p>${data.PicDescription || ""}</p>${heroBtns}</div>`;
           inner.appendChild(item);
           index++;
         });
+        if (window.initHeroCarousel) window.initHeroCarousel();
       })
-      .catch(error => {
-        console.error("Error loading carousel images:", error);
-        inner.innerHTML = "<p>Error loading carousel images.</p>";
-      });
+      .catch(() => {});
 
-    async function loadAnnouncements() {
-      const announcementsList = document.getElementById("announcementsList");
-      announcementsList.innerHTML = "<p>Syncing announcements...</p>";
-
+    async function loadPublicEvents() {
+      const container = document.getElementById("eventsContainer");
+      const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+      const apiBase = isLocal ? "http://localhost:4000/api" : "/api";
       try {
-        let snapshot = await db.collection("Announcements").orderBy("Date", "desc").get();
-        if (snapshot.empty) {
-          snapshot = await db.collection("Announcement").orderBy("Date", "desc").get();
-        }
-
-        announcementsList.innerHTML = "";
-
-        if (snapshot.empty) {
-          announcementsList.innerHTML = "<p>No announcements posted yet.</p>";
+        const response = await fetch(`${apiBase}/public/events`);
+        const data = await response.json();
+        if (!response.ok) throw new Error();
+        const events = data.events || [];
+        if (!events.length) {
+          container.innerHTML = `<p class="events-empty"><i class="bi bi-calendar-x"></i> No upcoming events posted yet.</p>`;
           return;
         }
-
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          // Smart-detect fields
-          const title = data.Title || data.title || data.subject || data.Header || "Announcement";
-          const content = data.Content || data.content || data.body || data.text || "";
-          
-          const annDiv = document.createElement("div");
-          annDiv.classList.add("announcement-item");
-          annDiv.innerHTML = `<strong style="color: var(--brand-red);">${title}</strong><br><span style="font-size: 0.9rem; opacity: 0.8;">${content}</span>`;
-          announcementsList.appendChild(annDiv);
-        });
-      } catch (error) {
-        console.error("Error loading announcements:", error);
-        announcementsList.innerHTML = "<p class='text-muted'>Unable to load announcements at this time.</p>";
+        container.innerHTML = events.map((ev) => {
+          const dateLabel = ev.eventDate ? new Date(`${ev.eventDate}T12:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "Date TBA";
+          return `<article class="event-card">
+            <div class="event-card-header"><i class="bi bi-calendar-event"></i><span class="event-date">${dateLabel}</span></div>
+            <h3 class="event-title">${ev.title}</h3>
+            <p class="event-description">${ev.description || ""}</p>
+            ${ev.venue ? `<p class="event-venue"><i class="bi bi-geo-alt-fill"></i> ${ev.venue}</p>` : ""}
+          </article>`;
+        }).join("");
+      } catch (_e) {
+        container.innerHTML = `<p class="events-empty"><i class="bi bi-wifi-off"></i> Events load when the portal API is running.</p>`;
       }
     }
+    loadPublicEvents();
 
-    loadAnnouncements();
-  </script>
-
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- Small clickable link section -->
-  <div class="main-container">
-    <div class="reveal shadow-sm" style="background-color: var(--card-bg); padding: 15px; border-left: 5px solid var(--brand-red); margin: 20px 0; font-family: inherit; font-size: 16px; border-radius: 4px;">
-      Dear students, <a id="brochureLink" href="#" target="_blank" style="color: var(--brand-red); font-weight: 600;">
-      click here
-      </a> for 
-      <span id="brochureText" style="text-decoration: underline;"> Student Brochure (awaiting upload)</span>.
-    </div>
-
-    <div class="reveal shadow-sm" style="background-color: var(--card-bg); padding: 15px; border-left: 5px solid var(--brand-red); margin: 20px 0; font-family: inherit; font-size: 16px; border-radius: 4px;">
-      Dear students, <a id="handbookLink" href="#" target="_blank" style="color: var(--brand-red); font-weight: 600;">
-      click here
-      </a> for 
-      <span id="handbookText" style="text-decoration: underline;"> Student Handbook (awaiting upload)</span>.
-    </div>
-  </div>
-
-  <section class="events-section reveal">
-    <h2 class="events-title">📅 Upcoming Events</h2>
-    <div class="events-container">
-      <div class="event-card">
-        <div class="event-icon">📢</div>
-        <h3 style="color: red;" class="event-title">Mathematics Quiz Finals</h3>
-        <p class="event-description">Join us on August 12,2025 for the annual math quiz championship. All grades welcome. Some techers are giving extra points for attendence. Don't miss out!!</p>
-        <p style="color: red;">Venue: ESEMI Devotion Hall</p>
-      </div>
-      <div class="event-card">
-        <div class="event-icon">📢</div>
-        <h3 style="color: var(--brand-red);" class="event-title">International Women's Day</h3>
-        <p class="event-description">To celebrate International Women's day(March 8,2026) this year ESEMI encourages all females and ladies to dress in African wear. Wear your native clothes in honour of our great continent's history with women's rights.</p>
-      </div>
-      <div class="event-card">
-        <div class="event-icon">📢</div>
-        <h3 style="color: var(--brand-red);" class="event-title">Parent-Teacher Meeting</h3>
-        <p class="event-description">Scheduled for August 25,2026. Parents are encouraged to meet their child' teachers and check up the performance. Other major topics will be discussed that directly affects your child. Do well to attend</p>
-        <p style="color: var(--brand-red);">Venue: ESEMI Devotion Hall</p>
-      </div>
-      <div class="event-card">
-        <div class="event-icon">📢</div>
-        <h3 style="color: var(--brand-red);" class="event-title">Sports Day</h3>
-        <p class="event-description">September 5. 2026 will be a day full of fun, games, and athletics. All students are encouraged to participate! There will be prizes for winners. Compete in fairness!</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="esemi-footer">
-    <div class="container">
-      <p class="mb-2">&copy; 2025 Elizabeth Sele Mulbah Institute. All rights reserved.</p>
-      <div class="d-flex justify-content-center gap-4">
-        <a href="https://www.facebook.com/profile.php?id=100057339143146" target="_blank" class="text-white text-decoration-none">
-          <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" width="24" height="24" />
-          <span class="ms-2">Facebook</span>
-        </a>
-        <a href="https://wa.me/+231777034812" target="_blank" class="text-white text-decoration-none">
-          <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp" width="24" height="24" />
-          <span class="ms-2">WhatsApp</span>
-        </a>
-        <a href="mailto:esemi2011@gmail.com" class="text-white text-decoration-none">
-          <img src="https://cdn-icons-png.flaticon.com/512/732/732200.png" alt="Email" width="24" height="24" />
-          <span class="ms-2">Email Us</span>
-        </a>
-      </div>
-    </div>
-  </footer>
-  <script src="shared.js"></script>
-  <script>
     (async function loadPublicDocs() {
       const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
       const apiBase = isLocal ? "http://localhost:4000/api" : "/api";
@@ -456,31 +294,15 @@
         const response = await fetch(`${apiBase}/public-docs`);
         const docs = await response.json();
         if (!response.ok) return;
-
-        const brochureLink = document.getElementById("brochureLink");
-        const brochureText = document.getElementById("brochureText");
         if (docs.brochure?.url) {
-          brochureLink.href = `${baseHost}${docs.brochure.url}`;
-          brochureText.textContent = docs.brochure.title || `Student Brochure ${docs.brochure.academicYear || ""}`.trim();
-        } else {
-          brochureLink.removeAttribute("href");
-          brochureLink.style.pointerEvents = "none";
-          brochureLink.style.opacity = "0.6";
+          document.getElementById("brochureLink").href = `${baseHost}${docs.brochure.url}`;
+          document.getElementById("brochureText").textContent = docs.brochure.title || "Brochure";
         }
-
-        const handbookLink = document.getElementById("handbookLink");
-        const handbookText = document.getElementById("handbookText");
         if (docs.handbook?.url) {
-          handbookLink.href = `${baseHost}${docs.handbook.url}`;
-          handbookText.textContent = docs.handbook.title || `Student Handbook ${docs.handbook.academicYear || ""}`.trim();
-        } else {
-          handbookLink.removeAttribute("href");
-          handbookLink.style.pointerEvents = "none";
-          handbookLink.style.opacity = "0.6";
+          document.getElementById("handbookLink").href = `${baseHost}${docs.handbook.url}`;
+          document.getElementById("handbookText").textContent = docs.handbook.title || "Handbook";
         }
-      } catch (_error) {
-        // Keep graceful placeholders if API is unavailable.
-      }
+      } catch (_e) {}
     })();
   </script>
 </body>
